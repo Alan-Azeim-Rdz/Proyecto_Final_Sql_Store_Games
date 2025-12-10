@@ -1,0 +1,163 @@
+﻿@model IEnumerable<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewInventarioItem>
+
+<div class="container-max-width mt-4">
+    <h2 class="text-start mb-4 text-light-steam">Inventario de Ítems</h2>
+
+    <!-- Barra de búsqueda -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-12">
+            <form asp-action="Index" method="get" class="search-bar-steam p-2 d-flex align-items-center">
+                <input type="text"
+                       name="searchString"
+                       class="form-control form-control-sm me-2 steam-input"
+                       placeholder="Buscar por ítem o juego..."
+                       value="@ViewData["CurrentFilter"]" />
+                <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filtros laterales -->
+        <div class="col-md-3">
+            <div class="sidebar-filter p-3">
+                <h5 class="text-white mb-3">Filtrar por...</h5>
+
+                <form asp-action="Index" method="get">
+                    <!-- Mantener la búsqueda actual -->
+                    <input type="hidden" name="searchString" value="@ViewData["CurrentFilter"]" />
+
+                    <!-- Filtro Rareza -->
+                    <div class="filter-section mb-3">
+                        <h6 class="text-light-steam-soft mb-2">Rareza</h6>
+                        <input type="text"
+                               name="filterRareza"
+                               class="form-control form-control-sm"
+                               placeholder="Ej: 1, 2, 3..."
+                               value="@ViewData["CurrentFilterRareza"]" />
+                    </div>
+
+                    <!-- Filtro Tipo de Ítem -->
+                    <div class="filter-section mb-3">
+                        <h6 class="text-light-steam-soft mb-2">Tipo de ítem</h6>
+                        <input type="text"
+                               name="filterTipoItem"
+                               class="form-control form-control-sm"
+                               placeholder="Ej: Skin, Emoticono..."
+                               value="@ViewData["CurrentFilterTipoItem"]" />
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                        Aplicar filtros
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="col-md-9">
+            <div class="card bg-dark border-0 shadow-lg">
+                <div class="card-body">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center text-light-steam-soft py-4">
+                            <h5>No tienes ítems en tu inventario todavía.</h5>
+                            <p class="mb-0">Cuando compres ítems en la tienda, aparecerán aquí.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-dark table-striped table-hover align-middle custom-table">
+                                <thead class="bg-darker-steam">
+                                    <tr>
+                                        <th>
+                                            @Html.ActionLink("Ítem", "Index", new {
+                                                sortOrder = (string)ViewData["CurrentSort"] == "nombre_desc" ? "" : "nombre_desc",
+                                                searchString = ViewData["CurrentFilter"],
+                                                filterRareza = ViewData["CurrentFilterRareza"],
+                                                filterTipoItem = ViewData["CurrentFilterTipoItem"],
+                                                pageNumber = ViewBag.CurrentPage
+                                            })
+                                        </th>
+                                        <th>
+                                            @Html.ActionLink("Juego de origen", "Index", new {
+                                                sortOrder = (string)ViewData["CurrentSort"] == "juego_asc" ? "juego_desc" : "juego_asc",
+                                                searchString = ViewData["CurrentFilter"],
+                                                filterRareza = ViewData["CurrentFilterRareza"],
+                                                filterTipoItem = ViewData["CurrentFilterTipoItem"],
+                                                pageNumber = ViewBag.CurrentPage
+                                            })
+                                        </th>
+                                        <th>Rareza</th>
+                                        <th>Tipo de ítem</th>
+                                        <th>Precio pagado</th>
+                                        <th>Fecha de adquisición</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="text-start">@item.Nombre</td>
+                                        <td>@item.JuegoOrigen</td>
+                                        <td>@(item.Rareza?.ToString() ?? "N/A")</td>
+                                        <td>@item.TipoItem</td>
+                                        <td>@item.PrecioPagado.ToString("C")</td>
+                                        <td>@item.FechaAdquisicion.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <!-- Anterior -->
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <a href="@Url.Action("Index", new {
+                                        pageNumber = ViewBag.CurrentPage - 1,
+                                        sortOrder = ViewData["CurrentSort"],
+                                        searchString = ViewData["CurrentFilter"],
+                                        filterRareza = ViewData["CurrentFilterRareza"],
+                                        filterTipoItem = ViewData["CurrentFilterTipoItem"]
+                                    })"
+                                   class="btn btn-secondary btn-sm">
+                                    Anterior
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="btn btn-secondary btn-sm disabled">Anterior</span>
+                            }
+
+                            <span class="text-light-steam-soft">
+                                Página @ViewBag.CurrentPage de @ViewBag.TotalPages
+                            </span>
+
+                            <!-- Siguiente -->
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <a href="@Url.Action("Index", new {
+                                        pageNumber = ViewBag.CurrentPage + 1,
+                                        sortOrder = ViewData["CurrentSort"],
+                                        searchString = ViewData["CurrentFilter"],
+                                        filterRareza = ViewData["CurrentFilterRareza"],
+                                        filterTipoItem = ViewData["CurrentFilterTipoItem"]
+                                    })"
+                                   class="btn btn-secondary btn-sm">
+                                    Siguiente
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="btn btn-secondary btn-sm disabled">Siguiente</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

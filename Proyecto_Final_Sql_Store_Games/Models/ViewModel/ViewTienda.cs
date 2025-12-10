@@ -2,19 +2,25 @@
 {
     public class ViewTienda
     {
-        // --- Propiedades que están causando el error ---
-        public string TipoProducto { get; set; } // Nuevo campo: 'Juego Base' o 'DLC'
-        public string Nombre { get; set; }
-        public decimal Precio { get; set; } // O usa 'double' o el tipo que corresponda en tu BD
+        // Tipo de producto: 'Juego Base' o 'DLC'
+        public string TipoProducto { get; set; }
 
-        // --- Propiedades que ya usabas o necesitas para la consulta unificada ---
+        // Identificador del producto (clave principal en Producto)
+        public int IdProducto { get; set; }
+
+        public string Nombre { get; set; }
+        public decimal Precio { get; set; }
+
         public string Desarrolladora { get; set; }
         public string Distribuidora { get; set; }
         public string Genero { get; set; }
 
-        // Si la consulta las sigue necesitando o las usas para ordenar:
+        // Si lo necesitas para otra cosa, se puede seguir usando
         public int IdJuego { get; set; }
-        public DateTime FechaCreacion { get; set; } // Asumiendo que la fecha de creación del producto está en Producto
+
+        public DateTime FechaCreacion { get; set; }
+
+        // Ya no se muestra en la tabla, pero la propiedad puede quedarse
         public string Clasificacion { get; set; }
     }
 }

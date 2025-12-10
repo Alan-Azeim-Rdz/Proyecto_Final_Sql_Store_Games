@@ -1,0 +1,142 @@
+﻿@model IEnumerable<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewBiblioteca>
+
+<div class="container-max-width mt-4">
+    <h2 class="text-start mb-4 text-light-steam">📚 Mi Biblioteca de Productos (Juegos y DLCs)</h2>
+
+    <div class="row mb-3 align-items-center">
+        <div class="col-12">
+            <form asp-controller="Biblioteca" asp-action="Index" method="get" class="search-bar-steam p-2 d-flex align-items-center">
+                <input type="text" name="SearchString" class="form-control form-control-sm me-2 steam-input" placeholder="Buscar por Nombre del Producto..." value="@ViewData["CurrentFilterNombre"]">
+
+                <input type="hidden" name="filterTipoProducto" value="@ViewData["CurrentFilterTipoProducto"]" />
+                <input type="hidden" name="filterDesarrolladora" value="@ViewData["CurrentFilterDesarrolladora"]" />
+                <input type="hidden" name="filterDistribuidora" value="@ViewData["CurrentFilterDistribuidora"]" />
+                <input type="hidden" name="filterGenero" value="@ViewData["CurrentFilterGenero"]" />
+
+                <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+                <a asp-controller="Biblioteca" asp-action="Index" class="btn btn-outline-secondary btn-sm ms-2">Limpiar Búsqueda</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="sidebar-filter p-3">
+                <h5 class="text-white mb-3">Filtrar Productos</h5>
+                <form asp-controller="Biblioteca" asp-action="Index" method="get">
+                    <input type="hidden" name="SearchString" value="@ViewData["CurrentFilterNombre"]" />
+
+                    <div class="filter-section mb-4">
+                        <h6 class="text-light-steam-soft mb-2">Tipo de Producto</h6>
+                        <select name="filterTipoProducto" class="form-control steam-input">
+                            <option value="">Todos</option>
+                            <option value="Juego" selected="@("Juego".Equals(ViewData["CurrentFilterTipoProducto"]))">Juego</option>
+                            <option value="DLC" selected="@("DLC".Equals(ViewData["CurrentFilterTipoProducto"]))">DLC</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section mb-4">
+                        <h6 class="text-light-steam-soft mb-2">Desarrolladora</h6>
+                        <input type="text" name="filterDesarrolladora" class="form-control steam-input" placeholder="Buscar desarrolladora" value="@ViewData["CurrentFilterDesarrolladora"]" />
+                    </div>
+
+                    <div class="filter-section mb-4">
+                        <h6 class="text-light-steam-soft mb-2">Distribuidora</h6>
+                        <input type="text" name="filterDistribuidora" class="form-control steam-input" placeholder="Buscar distribuidora" value="@ViewData["CurrentFilterDistribuidora"]" />
+                    </div>
+
+                    <div class="filter-section mb-4">
+                        <h6 class="text-light-steam-soft mb-2">Género</h6>
+                        <input type="text" name="filterGenero" class="form-control steam-input" placeholder="Buscar género" value="@ViewData["CurrentFilterGenero"]" />
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">Aplicar Filtros</button>
+                    <a asp-controller="Biblioteca" asp-action="Index" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="btn btn-outline-light btn-sm w-100 mt-2">Limpiar Filtros</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover shadow-lg custom-table">
+                    <thead class="bg-darker-steam">
+                        <tr>
+                            <th>
+                                <a asp-controller="Biblioteca" asp-action="Index" asp-route-sortOrder="@ViewData["NombreSortParm"]" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="text-light-steam-soft">Nombre del Producto</a>
+                            </th>
+                            <th>
+                                <a asp-controller="Biblioteca" asp-action="Index" asp-route-sortOrder="@ViewData["TipoSortParm"]" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="text-light-steam-soft">Tipo</a>
+                            </th>
+                            <th>
+                                <a asp-controller="Biblioteca" asp-action="Index" asp-route-sortOrder="@ViewData["DesarrolladoraSortParm"]" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="text-light-steam-soft">Desarrolladora</a>
+                            </th>
+                            <th>
+                                <a asp-controller="Biblioteca" asp-action="Index" asp-route-sortOrder="@ViewData["DistribuidoraSortParm"]" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="text-light-steam-soft">Distribuidora</a>
+                            </th>
+                            <th>
+                                <a asp-controller="Biblioteca" asp-action="Index" asp-route-sortOrder="@ViewData["GeneroSortParm"]" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="text-light-steam-soft">Género</a>
+                            </th>
+                            <th>
+                                <a asp-controller="Biblioteca" asp-action="Index" asp-route-sortOrder="@ViewData["FechaAdquisicionSortParm"]" asp-route-SearchString="@ViewData["CurrentFilterNombre"]" class="text-light-steam-soft">Adquirido</a>
+                            </th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-start">@item.Nombre</td>
+                                <td>@item.TipoProducto</td>
+                                <td>@item.Desarrolladora</td>
+                                <td>@item.Distribuidora</td>
+                                <td>@item.Genero</td>
+                                <td>@item.FechaAdquisicion.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-success">
+                                        Jugar / Instalar
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                @{
+                    var prevDisabled = !ViewBag.HasPreviousPage ? "disabled" : "";
+                    var nextDisabled = !ViewBag.HasNextPage ? "disabled" : "";
+                }
+
+                <a asp-controller="Biblioteca" asp-action="Index"
+                   asp-route-pageNumber="@(ViewBag.CurrentPage - 1)"
+                   asp-route-SearchString="@ViewData["CurrentFilterNombre"]"
+                   asp-route-sortOrder="@ViewData["CurrentSort"]"
+                   asp-route-filterTipoProducto="@ViewData["CurrentFilterTipoProducto"]"
+                   asp-route-filterDesarrolladora="@ViewData["CurrentFilterDesarrolladora"]"
+                   asp-route-filterDistribuidora="@ViewData["CurrentFilterDistribuidora"]"
+                   asp-route-filterGenero="@ViewData["CurrentFilterGenero"]"
+                   class="btn btn-secondary btn-sm @prevDisabled">
+                    Anterior
+                </a>
+
+                <div class="d-flex align-items-center">
+                    <span class="text-light-steam-soft me-2">Página @ViewBag.CurrentPage de @ViewBag.TotalPages</span>
+                </div>
+
+                <a asp-controller="Biblioteca" asp-action="Index"
+                   asp-route-pageNumber="@(ViewBag.CurrentPage + 1)"
+                   asp-route-SearchString="@ViewData["CurrentFilterNombre"]"
+                   asp-route-sortOrder="@ViewData["CurrentSort"]"
+                   asp-route-filterTipoProducto="@ViewData["CurrentFilterTipoProducto"]"
+                   asp-route-filterDesarrolladora="@ViewData["CurrentFilterDesarrolladora"]"
+                   asp-route-filterDistribuidora="@ViewData["CurrentFilterDistribuidora"]"
+                   asp-route-filterGenero="@ViewData["CurrentFilterGenero"]"
+                   class="btn btn-secondary btn-sm @nextDisabled">
+                    Siguiente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

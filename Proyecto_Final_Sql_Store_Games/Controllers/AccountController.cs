@@ -27,6 +27,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
         }
 
         // --- ACCIONES GET (MOSTRAR VISTAS) ---
+
         [HttpGet]
         public IActionResult Register() => View();
 
@@ -56,7 +57,10 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     return View(model);
                 }
 
-                var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo.ToLower() == email);
+                // Incluimos también el TipoUsuario para obtener el nombre del rol
+                var user = await _context.Usuarios
+                    .Include(u => u.IdTipoUsuarioNavigation)
+                    .FirstOrDefaultAsync(u => u.Correo.ToLower() == email);
 
                 bool passwordVerified = false;
                 bool storedIsHexSha256 = false;
@@ -77,7 +81,8 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     // Logging diagnóstico solo en Development
                     if (_env.IsDevelopment())
                     {
-                        _logger.LogInformation("Login attempt for email={Email}. UserFound={UserFound}, StoredIsHexSha256={IsHex}, PasswordVerified={Verified}",
+                        _logger.LogInformation(
+                            "Login attempt for email={Email}. UserFound={UserFound}, StoredIsHexSha256={IsHex}, PasswordVerified={Verified}",
                             email,
                             user != null,
                             storedIsHexSha256,
@@ -94,11 +99,15 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
 
                 if (user != null && passwordVerified)
                 {
+                    // Nombre del rol desde la tabla TipoUsuario.
+                    // Si por alguna razón la navegación es nula, se usa GetUserRole como respaldo.
+                    var roleName = user.IdTipoUsuarioNavigation?.Nombre ?? GetUserRole(user.IdTipoUsuario);
+
                     var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                         new Claim(ClaimTypes.Name, user.Nombre),
-                        new Claim(ClaimTypes.Role, GetUserRole(user.IdTipoUsuario))
+                        new Claim(ClaimTypes.Role, roleName)
                     };
 
                     var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
@@ -110,7 +119,8 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                         return LocalRedirect(returnUrl);
                     }
 
-                    return RedirectToAction("Index", "Home");
+                    // Redirección por defecto después de login
+                    return RedirectToAction("Index", "Tienda"); // Cambia a "Home" si lo prefieres
                 }
 
                 ViewData["ReturnUrl"] = returnUrl;
@@ -129,13 +139,14 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Limpia el ChangeTracker para evitar duplicados o estados inconsistentes
+                // Limpiar el ChangeTracker para evitar problemas de estados
                 _context.ChangeTracker.Clear();
 
-                // Validar que todos los campos requeridos estén presentes
+                // Validar campos obligatorios
                 var camposObligatorios = new[] {
-                    model.Nombre, model.ApellidoP, model.ApellidoM, model.Correo, model.Contraseña, model.ConfirmarContraseña,
-                    model.Telefono, model.Calle, model.Colonia, model.Ciudad, model.CodigoPostal, model.Estado, model.Pais
+                    model.Nombre, model.ApellidoP, model.ApellidoM, model.Correo, model.Contraseña,
+                    model.ConfirmarContraseña, model.Telefono, model.Calle, model.Colonia,
+                    model.Ciudad, model.CodigoPostal, model.Estado, model.Pais
                 };
                 if (camposObligatorios.Any(string.IsNullOrWhiteSpace))
                 {
@@ -155,43 +166,72 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     return View(model);
                 }
 
-                // Buscar o crear País
+                // --- País ---
                 var pais = _context.Pais.FirstOrDefault(p => p.Nombre.ToLower() == model.Pais.Trim().ToLower());
                 if (pais == null)
                 {
-                    pais = new Pai { Nombre = model.Pais.Trim(), Status = true, DateCreate = DateTime.Now };
+                    pais = new Pai
+                    {
+                        Nombre = model.Pais.Trim(),
+                        Status = true,
+                        DateCreate = DateTime.Now
+                    };
                     _context.Pais.Add(pais);
                     await _context.SaveChangesAsync();
                 }
 
-                // Buscar o crear Estado
-                var estado = _context.Estados.FirstOrDefault(e => e.Nombre.ToLower() == model.Estado.Trim().ToLower() && e.IdPais == pais.Id);
+                // --- Estado ---
+                var estado = _context.Estados.FirstOrDefault(e =>
+                    e.Nombre.ToLower() == model.Estado.Trim().ToLower() &&
+                    e.IdPais == pais.Id);
                 if (estado == null)
                 {
-                    estado = new Estado { Nombre = model.Estado.Trim(), IdPais = pais.Id, Status = true, DateCreate = DateTime.Now };
+                    estado = new Estado
+                    {
+                        Nombre = model.Estado.Trim(),
+                        IdPais = pais.Id,
+                        Status = true,
+                        DateCreate = DateTime.Now
+                    };
                     _context.Estados.Add(estado);
                     await _context.SaveChangesAsync();
                 }
 
-                // Buscar o crear Ciudad
-                var ciudad = _context.Ciudads.FirstOrDefault(c => c.Nombre.ToLower() == model.Ciudad.Trim().ToLower() && c.IdEstado == estado.Id);
+                // --- Ciudad ---
+                var ciudad = _context.Ciudads.FirstOrDefault(c =>
+                    c.Nombre.ToLower() == model.Ciudad.Trim().ToLower() &&
+                    c.IdEstado == estado.Id);
                 if (ciudad == null)
                 {
-                    ciudad = new Ciudad { Nombre = model.Ciudad.Trim(), IdEstado = estado.Id, Status = true, DateCreate = DateTime.Now };
+                    ciudad = new Ciudad
+                    {
+                        Nombre = model.Ciudad.Trim(),
+                        IdEstado = estado.Id,
+                        Status = true,
+                        DateCreate = DateTime.Now
+                    };
                     _context.Ciudads.Add(ciudad);
                     await _context.SaveChangesAsync();
                 }
 
-                // Buscar o crear CP
-                var cp = _context.CPs.FirstOrDefault(cp => cp.Nombre == model.CodigoPostal.Trim() && cp.IdCiudad == ciudad.Id);
+                // --- Código Postal ---
+                var cp = _context.CPs.FirstOrDefault(x =>
+                    x.Nombre == model.CodigoPostal.Trim() &&
+                    x.IdCiudad == ciudad.Id);
                 if (cp == null)
                 {
-                    cp = new CP { Nombre = model.CodigoPostal.Trim(), IdCiudad = ciudad.Id, Status = true, DateCreate = DateTime.Now };
+                    cp = new CP
+                    {
+                        Nombre = model.CodigoPostal.Trim(),
+                        IdCiudad = ciudad.Id,
+                        Status = true,
+                        DateCreate = DateTime.Now
+                    };
                     _context.CPs.Add(cp);
                     await _context.SaveChangesAsync();
                 }
 
-                // Buscar o crear Dirección
+                // --- Dirección ---
                 var direccion = _context.Direccions.FirstOrDefault(d =>
                     d.Calle.ToLower() == model.Calle.Trim().ToLower() &&
                     d.Colonia.ToLower() == model.Colonia.Trim().ToLower() &&
@@ -217,7 +257,18 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                var newUserIdTipoUsuario = 1;
+                // --- Tipo de Usuario: siempre estándar (usuario normal) ---
+                // Busca en la tabla TipoUsuario el registro cuyo Nombre sea "Estandar"
+                var tipoUsuarioNormal = await _context.TipoUsuarios
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.Nombre == "Estandar");
+
+                if (tipoUsuarioNormal == null)
+                {
+                    ModelState.AddModelError(string.Empty, "No se encontró el tipo de usuario estándar en la base de datos.");
+                    return View(model);
+                }
+
                 var nuevoUsuario = new Usuario
                 {
                     Nombre = model.Nombre,
@@ -227,29 +278,34 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     Contraseña = HashPasswordSha256(model.Contraseña),
                     Telefono = model.Telefono,
                     IdDireccion = direccion.Id,
-                    IdTipoUsuario = newUserIdTipoUsuario,
+                    IdTipoUsuario = tipoUsuarioNormal.Id, // 👈 Siempre usuario normal
                     Status = true,
                     DateCreate = DateTime.Now
                 };
+
                 _context.Usuarios.Add(nuevoUsuario);
                 await _context.SaveChangesAsync();
 
+                // Claims: usamos el nombre del tipo de usuario desde la tabla (por ej. "Estandar")
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, nuevoUsuario.Id.ToString()),
                     new Claim(ClaimTypes.Name, nuevoUsuario.Nombre),
-                    new Claim(ClaimTypes.Role, GetUserRole(newUserIdTipoUsuario))
+                    new Claim(ClaimTypes.Role, tipoUsuarioNormal.Nombre)
                 };
+
                 var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
                 await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity));
 
-                return RedirectToAction("Index", "Home");
+                // Redirección después del registro
+                return RedirectToAction("Index", "Tienda"); // Cambia a Home si lo prefieres
             }
+
             return View(model);
         }
 
         // ------------------------------------------
-        // --- FUNCIONES DE HASHING (SHA256 SALTED) ---
+        // --- FUNCIÓN DE HASHING (PBKDF2 + SHA256) ---
         // ------------------------------------------
 
         private string HashPasswordSha256(string password)
@@ -264,7 +320,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 rng.GetBytes(salt);
             }
 
-            // Usamos SHA256 con PBKDF2 para hacer el proceso lento y seguro.
             var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
             byte[] hash = pbkdf2.GetBytes(HashSize);
 
@@ -275,8 +330,8 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             return Convert.ToBase64String(hashBytes);
         }
 
+        // --- FUNCIONES AUXILIARES PARA SHA256 HEX (FORMATOS ANTIGUOS) ---
 
-        // --- FUNCIONES AUXILIARES PARA SHA256 HEX ---
         private static bool IsHexSha256(string s)
         {
             if (string.IsNullOrEmpty(s)) return false;
@@ -294,15 +349,16 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             return sb.ToString().ToUpperInvariant();
         }
 
-        // --- FUNCIÓN AUXILIAR DE ROL ---
+        // --- FUNCIÓN AUXILIAR DE ROL LEYENDO LA TABLA TipoUsuario ---
+
         private string GetUserRole(int idTipoUsuario)
         {
-            return idTipoUsuario switch
-            {
-                1 => "Admin",
-                2 => "Estandar",
-                _ => "Desconocido",
-            };
+            var tipo = _context.TipoUsuarios
+                .AsNoTracking()
+                .FirstOrDefault(t => t.Id == idTipoUsuario);
+
+            // Devuelve el Nombre del tipo de usuario en BD, o "Estandar" como valor por defecto
+            return tipo?.Nombre ?? "Estandar";
         }
     }
 }
