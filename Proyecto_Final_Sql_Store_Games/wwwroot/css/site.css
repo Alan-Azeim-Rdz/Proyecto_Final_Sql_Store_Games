@@ -1,0 +1,76 @@
+/* Paleta de Colores de Steam (Aproximada) */
+:root {
+    --steam-dark-background: #1b2838; /* El azul oscuro principal de la página */
+    --steam-header-background: #171a21; /* El color negro/azul oscuro del header */
+    --steam-light-text: #d7d7d7; /* Texto claro */
+    --steam-link-color: #66c0f4; /* Azul de enlaces */
+    --steam-install-button: #5c7e10; /* Verde del botón de instalar */
+}
+
+/* 1. Estilo global para la tipografía y fondo */
+/* El fondo de Steam no es sólido; es un degradado sutil */
+body {
+    background-color: #1b2838 !important;
+    background-image: linear-gradient(to right, #1b2838 5%, #182531 95%);
+    color: var(--steam-light-text);
+    font-family: "Motiva Sans", "Arial", sans-serif; /* Intenta usar una fuente similar */
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+}
+
+/* 2. Resetear el color de los enlaces */
+a {
+    color: var(--steam-link-color);
+    text-decoration: none; /* Quitamos el subrayado por defecto */
+}
+
+    a:hover {
+        color: var(--steam-highlight-text);
+        text-decoration: underline; /* Subrayado al pasar el ratón */
+    }
+
+/* 3. Estilos del Header (Navbar superior) */
+.bg-dark-header {
+    background-color: var(--steam-header-background) !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    padding-top: 5px; /* Ajuste de altura */
+    padding-bottom: 5px;
+    margin-bottom: 0 !important; /* Eliminar el margen inferior de Bootstrap */
+}
+
+/* 4. Estilo de los enlaces en la barra de navegación */
+.navbar-nav .nav-link {
+    color: var(--steam-light-text) !important;
+    font-size: 14px;
+    padding: 0 10px; /* Más espaciado */
+    text-transform: uppercase;
+}
+
+    .navbar-nav .nav-link:hover {
+        color: white !important; /* Un poco más claro al hacer hover */
+    }
+
+/* 5. Contenedor principal para contenido que ocupa el 100% de ancho */
+.container-fluid {
+    padding-left: 10%; /* Dejar espacio en los lados para el logo de Steam */
+    padding-right: 10%;
+}
+
+/* 6. Footer */
+.footer-steam {
+    background-color: var(--steam-header-background);
+    color: var(--steam-light-text) !important;
+    padding: 20px 0;
+    font-size: 12px;
+    position: static;
+    width: 100%;
+}
+
+/* 7. Barra de búsqueda (si la implementas) */
+.search-bar {
+    background-color: #384553;
+    border: 1px solid #4a667b;
+    color: white;
+}

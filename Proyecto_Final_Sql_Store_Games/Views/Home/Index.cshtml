@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@if (User.Identity.IsAuthenticated)
+
+{
+    <!-- Contenido visible solo para usuarios autenticados -->
+    <div class="text-center">
+        <h1 class="display-4">¡Bienvenido a la Tienda!</h1>
+        <p>Explora las increíbles ofertas, juegos, y mucho más!</p>
+    </div>
+}
+else
+{
+    <!-- Contenido visible para usuarios no autenticados -->
+    <div class="text-center">
+        <h1 class="display-4">¡Bienvenido!</h1>
+        <p>Por favor, <a href="@Url.Action("Login", "Account")">inicia sesión</a> o <a href="@Url.Action("Register", "Account")">regístrate</a> para continuar.</p>
+        <p>Si ya tienes una cuenta, ingresa para explorar nuestros productos y ofertas exclusivas.</p>
+    </div>
+}

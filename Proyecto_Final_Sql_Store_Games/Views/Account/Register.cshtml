@@ -1,0 +1,162 @@
+﻿@model Proyecto_Final_Sql_Store_Games.Models.ViewModel.RegisterViewModel
+@{
+    ViewData["Title"] = "Registro";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #171a21;
+            color: white;
+        }
+
+        .register-container {
+            max-width: 500px;
+            margin: auto;
+            padding: 40px;
+            background-color: #2a475e;
+            border-radius: 10px;
+        }
+
+        .register-container h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-control {
+            background-color: #1b2838;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .btn-primary {
+            background-color: #5d9f35;
+            border-color: #5d9f35;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <h1>Crear una cuenta</h1>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" role="alert">
+                @Html.ValidationSummary(false, "Por favor, completa todos los campos obligatorios.")
+            </div>
+        }
+        <form asp-action="Register" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="Nombre">Nombre</label>
+                <input asp-for="Nombre" class="form-control" />
+                <span class="text-danger" asp-validation-for="Nombre"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ApellidoP">Apellido paterno</label>
+                <input asp-for="ApellidoP" class="form-control" />
+                <span class="text-danger" asp-validation-for="ApellidoP"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ApellidoM">Apellido materno</label>
+                <input asp-for="ApellidoM" class="form-control" />
+                <span class="text-danger" asp-validation-for="ApellidoM"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Correo">Correo electrónico</label>
+                <input asp-for="Correo" class="form-control" />
+                <span class="text-danger" asp-validation-for="Correo"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Contraseña">Contraseña</label>
+                <input asp-for="Contraseña" class="form-control" type="password" />
+                <span class="text-danger" asp-validation-for="Contraseña"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ConfirmarContraseña">Confirmar contraseña</label>
+                <input asp-for="ConfirmarContraseña" class="form-control" type="password" />
+                <span class="text-danger" asp-validation-for="ConfirmarContraseña"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Telefono">Teléfono</label>
+                <input asp-for="Telefono" class="form-control" />
+                <span class="text-danger" asp-validation-for="Telefono"></span>
+            </div>
+
+            <hr />
+            <h5 class="mb-3">Dirección</h5>
+
+            <div class="form-group">
+                <label asp-for="Calle">Calle</label>
+                <input asp-for="Calle" class="form-control" />
+                <span class="text-danger" asp-validation-for="Calle"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Colonia">Colonia</label>
+                <input asp-for="Colonia" class="form-control" />
+                <span class="text-danger" asp-validation-for="Colonia"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Ciudad">Ciudad</label>
+                <input asp-for="Ciudad" class="form-control" />
+                <span class="text-danger" asp-validation-for="Ciudad"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CodigoPostal">Código Postal</label>
+                <input asp-for="CodigoPostal" class="form-control" />
+                <span class="text-danger" asp-validation-for="CodigoPostal"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Estado">Estado</label>
+                <input asp-for="Estado" class="form-control" />
+                <span class="text-danger" asp-validation-for="Estado"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Pais">País</label>
+                <input asp-for="Pais" class="form-control" />
+                <span class="text-danger" asp-validation-for="Pais"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
+        </form>
+
+        <div class="footer-text">
+            <p>¿Ya tienes una cuenta? <a asp-action="Login" asp-controller="Account">Inicia sesión</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

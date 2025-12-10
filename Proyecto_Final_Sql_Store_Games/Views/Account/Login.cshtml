@@ -1,0 +1,93 @@
+﻿@model Proyecto_Final_Sql_Store_Games.Models.ViewModel.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = null; // Asumiendo que no quieres el layout principal aquí
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #171a21;
+            color: white;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 50px;
+            background-color: #2a475e;
+            border-radius: 10px;
+        }
+
+            .login-container h1 {
+                font-size: 2em;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+        .form-control {
+            background-color: #1b2838;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .btn-primary {
+            background-color: #5d9f35;
+            border-color: #5d9f35;
+        }
+        /* ... Estilos omitidos por brevedad ... */
+    </style>
+</head>
+<body>
+    <div class="login-container mt-5">
+        <h1>Iniciar sesión</h1>
+
+        @* Mostrar cualquier error de validación (campos o errores a nivel de modelo) *@
+        @if (ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                @Html.ValidationSummary(false, "Falló el intento de inicio de sesión. Por favor, verifica tus datos.")
+            </div>
+        }
+
+        <form asp-action="Login" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="Correo">Correo Electrónico</label>
+                <input asp-for="Correo" class="form-control" />
+                <span class="text-danger" asp-validation-for="Correo"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Contraseña">Contraseña</label>
+                <input asp-for="Contraseña" class="form-control" type="password" />
+                <span class="text-danger" asp-validation-for="Contraseña"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+        </form>
+
+        <div class="d-flex justify-content-center mt-4">
+            <div>
+                <h5 class="text-center">O bien con un código QR</h5>
+                <img class="qr-code" src="https://api.qrcode-monkey.com/tmp/dc14314db0e067db6ecec8626fffe513.svg?1765186011862" alt="QR Code" style="max-width: 150px; width: 100%; height: auto;">
+            </div>
+        </div>
+
+        <div class="footer-text">
+            <p>¿Tu primera vez en Steam? <a asp-action="Register" asp-controller="Account">Crea una cuenta</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

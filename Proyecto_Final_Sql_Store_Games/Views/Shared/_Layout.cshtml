@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sql_Steam_Final</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Sql_Steam_Final.styles.css" asp-append-version="true" />
+</head>
+<body class="bg-dark-steam">
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark-header box-shadow-0">
+            <div class="container-fluid container-max-width">
+                <a class="navbar-brand text-light" asp-area="" asp-controller="Home" asp-action="Index">STEAM</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="Tienda" asp-action="Index">TIENDA</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="Ventas_Anuales_x_Pais" asp-action="ReporteAnual">Reporte de Ventas Anuales</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="VAuditoriaGeneralJuego" asp-action="Index">Biblioteca</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="VInventarioProducto" asp-action="Index">Inventario</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="VJuegoDetallesConsolidado" asp-action="Index">Amigos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="VReseñasDetallada" asp-action="Index">Comunidades</a>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="VUsuarioPerfilCompleto" asp-action="Index">Usuarios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="VVentaDetalleCompleto" asp-action="Index">Venta Items</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light-steam" asp-area="" asp-controller="Account" asp-action="Login">cerrar secion</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="main-content-area">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer-steam text-muted">
+        <div class="container-max-width text-center">
+            &copy; 2025 - Sql_Steam_Final - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function mostrarCarrito() {
+            // Aquí se puede mostrar un modal o redirigir a la página del carrito
+            alert('Aquí se mostrarán los requisitos para la compra y los productos agregados.');
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
