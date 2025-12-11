@@ -93,6 +93,7 @@
                                         <th>Tipo de ítem</th>
                                         <th>Precio pagado</th>
                                         <th>Fecha de adquisición</th>
+                                        <th>Acciones</th> <!-- Nueva columna para acciones -->
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -105,6 +106,15 @@
                                         <td>@item.TipoItem</td>
                                         <td>@item.PrecioPagado.ToString("C")</td>
                                         <td>@item.FechaAdquisicion.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @if (item.EsActivo) // Debes agregar esta propiedad en el ViewModel
+                                            {
+                                                <form asp-action="SolicitarRembolso" asp-controller="Inventario" method="post" onsubmit="return confirm('¿Seguro que deseas solicitar el reembolso de este producto?');">
+                                                    <input type="hidden" name="idProducto" value="@item.IdProducto" />
+                                                    <button type="submit" class="btn btn-danger btn-sm">Solicitar reembolso</button>
+                                                </form>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                                 </tbody>

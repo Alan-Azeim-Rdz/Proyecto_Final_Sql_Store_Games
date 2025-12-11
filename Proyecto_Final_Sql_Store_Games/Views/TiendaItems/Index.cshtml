@@ -1,0 +1,113 @@
+﻿@model List<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewTiendaItem> 
+@* No es necesario @using System.Linq si usamos Model.Count *@
+
+<div class="container-max-width mt-4">
+    <h2 class="text-start mb-4 text-light-steam">Tienda de Items</h2>
+
+    <div class="row mb-3 align-items-center">
+        <div class="col-12">
+            <form method="get" class="search-bar-steam p-2 d-flex align-items-center">
+                
+                <input type="text" name="searchString" class="form-control form-control-sm me-2 steam-input" 
+                       placeholder="Buscar por nombre" value="@ViewBag.SearchString" />
+
+                <select name="filterRareza" class="form-select form-select-sm steam-input me-2" style="width: 150px;">
+                    <option value="">-- Rareza (Todos) --</option>
+                    <option value="1" selected="@(ViewBag.FilterRareza == 1)">Común (1)</option>
+                    <option value="2" selected="@(ViewBag.FilterRareza == 2)">Raro (2)</option>
+                    <option value="3" selected="@(ViewBag.FilterRareza == 3)">Épico (3)</option>
+                    <option value="4" selected="@(ViewBag.FilterRareza == 4)">Legendario (4)</option>
+                    <option value="5" selected="@(ViewBag.FilterRareza == 5)">Mítico (5)</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-0 shadow-lg">
+        <div class="card-body">
+            @* CORRECCIÓN 1: Usamos Model.Count para evitar RuntimeBinderException *@
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="text-center text-light-steam-soft py-4">
+                    <h5>No se encontraron items.</h5>
+                    <p class="mb-0">Ajusta tu búsqueda por nombre o tu filtro de rareza.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover align-middle custom-table">
+                        <thead class="bg-darker-steam">
+                            <tr>
+                                <th>Nombre del Producto</th>
+                                <th>Rareza</th>
+                                <th>Precio</th>
+                                <th>Juego Origen</th>
+                                <th>Categoría</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.ProductoNombre</td>
+                                    <td>@item.ItemRareza</td>
+                                    <td>@item.ProductoPrecio.ToString("C")</td>
+                                    <td>@item.JuegoOrigenNombre</td>
+                                    <td>@item.CategoriaNombre</td>
+                                    <td>
+                                        <form asp-controller="Carrito" asp-action="Agregar" method="post" class="d-inline">
+                                            <input type="hidden" name="idProducto" value="@item.ProductoId" />
+                                            <input type="hidden" name="origen" value="TiendaItems" />
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                Agregar a cesta
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        @* CORRECCIÓN 2: Pasamos los argumentos anónimos directamente a Url.Action *@
+                        <a href="@Url.Action("Index", new { 
+                            pageNumber = ViewBag.CurrentPage - 1, 
+                            searchString = (string)ViewBag.SearchString,
+                            filterRareza = (int?)ViewBag.FilterRareza 
+                        })" class="btn btn-secondary btn-sm">Anterior</a>
+                    }
+                    else
+                    {
+                        <span class="btn btn-secondary btn-sm disabled">Anterior</span>
+                    }
+
+                    <div class="d-flex align-items-center">
+                        <span class="text-light-steam-soft me-2">Página @ViewBag.CurrentPage de @ViewBag.TotalPages</span>
+                    </div>
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        @* CORRECCIÓN 2: Pasamos los argumentos anónimos directamente a Url.Action *@
+                        <a href="@Url.Action("Index", new { 
+                            pageNumber = ViewBag.CurrentPage + 1, 
+                            searchString = (string)ViewBag.SearchString,
+                            filterRareza = (int?)ViewBag.FilterRareza 
+                        })" class="btn btn-secondary btn-sm">Siguiente</a>
+                    }
+                    else
+                    {
+                        <span class="btn btn-secondary btn-sm disabled">Siguiente</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

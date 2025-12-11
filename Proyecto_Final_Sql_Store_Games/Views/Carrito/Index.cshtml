@@ -1,0 +1,71 @@
+@model Proyecto_Final_Sql_Store_Games.Models.ViewModel.CestaViewModel
+
+<div class="container-max-width mt-4">
+    <h2 class="text-start mb-4 text-light-steam">Cesta de compra</h2>
+    @if ((Model.Items == null || !Model.Items.Any()) && (Model.JuegosYDlcs == null || !Model.JuegosYDlcs.Any()))
+    {
+        <div class="alert alert-info">No hay productos en la cesta.</div>
+    }
+    else
+    {
+        <div class="table-responsive mb-4">
+            <table class="table table-dark table-striped table-hover align-middle custom-table">
+                <thead class="bg-darker-steam">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Nombre</th>
+                        <th>Precio unitario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>Item</td>
+                            <td>@item.ProductoNombre</td>
+                            <td>@item.ProductoPrecio.ToString("C")</td>
+                        </tr>
+                    }
+                    @foreach (var prod in Model.JuegosYDlcs)
+                    {
+                        <tr>
+                            <td>@prod.TipoProducto</td>
+                            <td>@prod.Nombre</td>
+                            <td>@prod.Precio.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="mb-3">
+            <strong>Total: </strong>
+            @{
+                var total = Model.Items.Sum(i => i.ProductoPrecio) + Model.JuegosYDlcs.Sum(j => j.Precio);
+            }
+            <span>@total.ToString("C")</span>
+        </div>
+        <form asp-action="Comprar" method="post">
+            <div class="mb-3">
+                <label>Método de pago:</label>
+                <select name="metodoPago" class="form-select">
+                    <option value="">Selecciona...</option>
+                    @foreach (var metodo in (IEnumerable<Proyecto_Final_Sql_Store_Games.Models.MetodoPago>)ViewBag.MetodosPago)
+                    {
+                        <option value="@metodo.Id">@metodo.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Moneda:</label>
+                <select name="moneda" class="form-select">
+                    <option value="">Selecciona...</option>
+                    @foreach (var moneda in (IEnumerable<Proyecto_Final_Sql_Store_Games.Models.Monedum>)ViewBag.Monedas)
+                    {
+                        <option value="@moneda.Id">@moneda.Nombre</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Comprar todo</button>
+        </form>
+    }
+</div>

@@ -31,5 +31,5 @@ public partial class Factura
 
     public virtual Usuario? IdUserUpdateNavigation { get; set; }
 
-    public virtual Ventum? Ventum { get; set; }
+    public virtual Venta? Ventum { get; set; }
 }

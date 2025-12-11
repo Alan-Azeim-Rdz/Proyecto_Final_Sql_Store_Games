@@ -1,0 +1,61 @@
+﻿@model IEnumerable<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewUsuario>
+
+<div class="container-max-width mt-4">
+    <h2 class="text-start mb-4 text-light-steam">Usuarios</h2>
+
+    <!-- Barra de búsqueda -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-12">
+            <form asp-action="Index" method="get" class="search-bar-steam p-2 d-flex align-items-center">
+                <input type="text"
+                       name="searchString"
+                       class="form-control form-control-sm me-2 steam-input"
+                       placeholder="Buscar por ID o nombre"
+                       value="@ViewData["CurrentFilter"]" />
+                <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-0 shadow-lg">
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center text-light-steam-soft py-4">
+                    <h5>No hay usuarios para mostrar.</h5>
+                    <p class="mb-0">Puedes buscar por ID o nombre de usuario.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover align-middle custom-table">
+                        <thead class="bg-darker-steam">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Juegos/DLCs</th>
+                                <th>Ítems</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var usuario in Model)
+                            {
+                                <tr>
+                                    <td>@usuario.Nombre</td>
+                                    <td>@usuario.CantidadJuegos</td>
+                                    <td>@usuario.CantidadItems</td>
+                                    <td>
+                                        <form method="post" asp-action="AgregarAmigo" asp-route-idUsuario="@usuario.IdUsuario">
+                                            <button type="submit" class="btn btn-success btn-sm">Agregar como amigo</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

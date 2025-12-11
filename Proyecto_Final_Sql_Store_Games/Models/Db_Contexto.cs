@@ -137,6 +137,8 @@ public partial class Db_Contexto : DbContext
 
     public virtual DbSet<VDlcResumenXJuego> VDlcResumenXJuegos { get; set; }
 
+    public virtual DbSet<Inventario> Inventarios { get; set; }
+
     public virtual DbSet<VInventarioProducto> VInventarioProductos { get; set; }
 
     public virtual DbSet<VJuegoDetallesConsolidado> VJuegoDetallesConsolidados { get; set; }
@@ -151,7 +153,7 @@ public partial class Db_Contexto : DbContext
 
     public virtual DbSet<VVentasAnualesXPai> VVentasAnualesXPais { get; set; }
 
-    public virtual DbSet<Ventum> Venta { get; set; }
+    public virtual DbSet<Venta> Venta { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -2588,7 +2590,7 @@ public partial class Db_Contexto : DbContext
             entity.Property(e => e.VentaPromedioCalculada).HasColumnName("Venta_Promedio_Calculada");
         });
 
-        modelBuilder.Entity<Ventum>(entity =>
+        modelBuilder.Entity<Venta>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Venta__3214EC0797A5ADF7");
 
@@ -2624,7 +2626,7 @@ public partial class Db_Contexto : DbContext
                 .HasConstraintName("FK_Venta_Evento");
 
             entity.HasOne(d => d.IdFacturaNavigation).WithOne(p => p.Ventum)
-                .HasForeignKey<Ventum>(d => d.IdFactura)
+                .HasForeignKey<Venta>(d => d.IdFactura)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Venta_Factura_Logica");
 

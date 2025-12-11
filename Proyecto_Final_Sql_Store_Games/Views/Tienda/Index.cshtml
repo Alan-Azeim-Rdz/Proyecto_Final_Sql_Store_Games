@@ -42,26 +42,28 @@
                     <thead class="bg-darker-steam">
                         <tr>
                             <th>Nombre del Producto</th>
+                            <th>Precio</th>
                             <th>Fecha de Creación</th>
                             <th>Desarrolladora</th>
                             <th>Distribuidora</th>
-                            <th>Género</th>  <!-- Mostrar el Género -->
-                            <th></th>  <!-- Columna sin nombre (antes 'Clasificación') -->
+                            <th>Género</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="text-start">@item.Nombre</td> <!-- Nombre del Juego o DLC -->
-                                <td>@item.FechaCreacion.ToString("dd/MM/yyyy")</td> <!-- Fecha de Creación -->
-                                <td>@item.Desarrolladora</td> <!-- Nombre de la Desarrolladora -->
-                                <td>@item.Distribuidora</td> <!-- Nombre de la Distribuidora -->
-                                <td>@item.Genero</td> <!-- Mostrar el Género -->
+                                <td class="text-start">@item.Nombre</td>
+                                <td>@item.Precio.ToString("C")</td>
+                                <td>@item.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                                <td>@item.Desarrolladora</td>
+                                <td>@item.Distribuidora</td>
+                                <td>@item.Genero</td>
                                 <td>
-                                    <!-- Botón para agregar a una cesta imaginaria -->
                                     <form asp-controller="Carrito" asp-action="Agregar" method="post" class="d-inline">
-                                        <input type="hidden" name="idProducto" value="" />
+                                        <input type="hidden" name="idProducto" value="@item.IdProducto" />
+                                        <input type="hidden" name="origen" value="Tienda" />
                                         <button type="submit" class="btn btn-sm btn-success">
                                             Agregar a cesta
                                         </button>
@@ -75,7 +77,6 @@
 
             <!-- Paginado -->
             <div class="d-flex justify-content-between align-items-center">
-                <!-- Botón Anterior -->
                 @if (ViewBag.CurrentPage > 1)
                 {
                     <a href="@Url.Action("Index", new { pageNumber = ViewBag.CurrentPage - 1, SearchString = ViewData["CurrentFilter"], sortOrder = ViewData["CurrentSort"], filterDistribuidora = ViewData["CurrentFilterDistribuidora"], filterDesarrolladora = ViewData["CurrentFilterDesarrolladora"] })" class="btn btn-secondary btn-sm">Anterior</a>
@@ -85,12 +86,10 @@
                     <span class="btn btn-secondary btn-sm disabled">Anterior</span>
                 }
 
-                <!-- Indicador de Página -->
                 <div class="d-flex align-items-center">
                     <span class="text-light-steam-soft me-2">Página @ViewBag.CurrentPage de @ViewBag.TotalPages</span>
                 </div>
 
-                <!-- Botón Siguiente -->
                 @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                 {
                     <a href="@Url.Action("Index", new { pageNumber = ViewBag.CurrentPage + 1, SearchString = ViewData["CurrentFilter"], sortOrder = ViewData["CurrentSort"], filterDistribuidora = ViewData["CurrentFilterDistribuidora"], filterDesarrolladora = ViewData["CurrentFilterDesarrolladora"] })" class="btn btn-secondary btn-sm">Siguiente</a>

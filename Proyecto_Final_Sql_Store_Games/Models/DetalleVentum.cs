@@ -37,5 +37,5 @@ public partial class DetalleVentum
 
     public virtual Usuario? IdUserUpdateNavigation { get; set; }
 
-    public virtual Ventum IdVentaNavigation { get; set; } = null!;
+    public virtual Venta IdVentaNavigation { get; set; } = null!;
 }

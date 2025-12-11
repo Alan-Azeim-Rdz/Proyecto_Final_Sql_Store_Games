@@ -12,5 +12,6 @@
         public string Genero { get; set; }
         public string? JuegoBase { get; set; }
         public DateTime FechaLanzamientoProducto { get; set; }
+        public bool EsActivo { get; set; } // Indica si el producto está activo (no reembolsado)
     }
 }

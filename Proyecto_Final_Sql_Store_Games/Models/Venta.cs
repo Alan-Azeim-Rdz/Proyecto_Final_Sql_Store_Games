@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Proyecto_Final_Sql_Store_Games.Models;
 
-public partial class Ventum
+public partial class Venta
 {
     public int Id { get; set; }
 

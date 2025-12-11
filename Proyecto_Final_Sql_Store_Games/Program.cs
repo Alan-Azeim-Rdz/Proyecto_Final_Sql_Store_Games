@@ -3,51 +3,55 @@ using Proyecto_Final_Sql_Store_Games.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Agregar servicios de autenticación y autorización
 builder.Services.AddAuthentication("Cookies") // Aquí definimos 'Cookies' como el esquema por defecto si no se especifica otro
     .AddCookie("Cookies", options => // Usamos el esquema de Cookies
     {
-        // Configuramos la ruta de redirección si la autorización falla (el Challenge)
-        options.LoginPath = "/Account/Login"; // <<-- RUTA A TU MÉTODO LOGIN (GET)
-
-        // Configuramos otras opciones si es necesario:
-        options.AccessDeniedPath = "/Account/AccessDenied"; // Opcional, si hay una página de acceso denegado
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(20); // Tiempo de vida del cookie
-        options.SlidingExpiration = true; // Refrescar el tiempo de vida en cada solicitud
+        options.LoginPath = "/Account/Login"; // Ruta de redirección para el login
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Ruta si hay acceso denegado
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(20); // Tiempo de expiración del cookie
+        options.SlidingExpiration = true; // Refrescar el tiempo de vida del cookie en cada solicitud
     });
-// Add services to the container.
+
+// Habilitar servicios necesarios para MVC y sesión
 builder.Services.AddControllersWithViews();
 
-// 1. Obtener la cadena de conexión de la configuración (appsettings.json)
+// Configurar el DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// 2. Registrar el DbContext (usando SQL Server y la cadena de conexión)
 builder.Services.AddDbContext<Db_Contexto>(options =>
     options.UseSqlServer(connectionString));
 
+// Configuración de sesiones
+builder.Services.AddDistributedMemoryCache(); // Almacén en memoria para sesiones
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Establecer tiempo de espera de sesión
+    options.Cookie.HttpOnly = true; // Solo accesible desde el servidor
+    options.Cookie.IsEssential = true; // Habilitar la cookie para el funcionamiento de la sesión
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configuración de la canalización de peticiones
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-//agregados
+
+// Middleware para la autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseAuthorization();
-
-app.MapStaticAssets();
+// Middleware de sesiones
+app.UseSession();  // Este middleware debe estar antes de la ruta que accede a la sesión
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}")
-    .WithStaticAssets();
-
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

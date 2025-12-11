@@ -24,5 +24,8 @@
 
         // Juego del que proviene el ítem
         public string JuegoOrigen { get; set; } = null!;
+
+        // Indica si el producto está activo (no reembolsado)
+        public bool EsActivo { get; set; }
     }
 }

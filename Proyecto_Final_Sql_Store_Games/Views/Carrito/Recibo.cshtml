@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Recibo";
+}
+
+<div class="container-max-width mt-4">
+    <h2 class="text-start mb-4 text-light-steam">Recibo de compra</h2>
+    <div class="mb-3">
+        <label class="form-label">Recibo en formato JSON:</label>
+        <textarea id="reciboJson" class="form-control" rows="12" readonly>@ViewBag.ReciboJson</textarea>
+    </div>
+    <button class="btn btn-success" onclick="descargarRecibo()">Descargar recibo (.json)</button>
+    <a href="@Url.Action("Index", "Carrito")" class="btn btn-secondary ms-2">Volver a la cesta</a>
+</div>
+
+<script>
+function descargarRecibo() {
+    const data = document.getElementById('reciboJson').value;
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recibo.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>

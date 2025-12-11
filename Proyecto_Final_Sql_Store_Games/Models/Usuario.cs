@@ -417,11 +417,11 @@ public partial class Usuario
 
     public virtual ICollection<UsuarioTag> UsuarioTagIdUserUpdateNavigations { get; set; } = new List<UsuarioTag>();
 
-    public virtual ICollection<Ventum> VentumIdUserCreateNavigations { get; set; } = new List<Ventum>();
+    public virtual ICollection<Venta> VentumIdUserCreateNavigations { get; set; } = new List<Venta>();
 
-    public virtual ICollection<Ventum> VentumIdUserDeleteNavigations { get; set; } = new List<Ventum>();
+    public virtual ICollection<Venta> VentumIdUserDeleteNavigations { get; set; } = new List<Venta>();
 
-    public virtual ICollection<Ventum> VentumIdUserUpdateNavigations { get; set; } = new List<Ventum>();
+    public virtual ICollection<Venta> VentumIdUserUpdateNavigations { get; set; } = new List<Venta>();
 
-    public virtual ICollection<Ventum> VentumIdUsuarioNavigations { get; set; } = new List<Ventum>();
+    public virtual ICollection<Venta> VentumIdUsuarioNavigations { get; set; } = new List<Venta>();
 }

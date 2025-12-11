@@ -93,9 +93,14 @@
                                 <td>@item.Genero</td>
                                 <td>@item.FechaAdquisicion.ToString("dd/MM/yyyy")</td>
                                 <td>
-                                    <a href="#" class="btn btn-sm btn-success">
-                                        Jugar / Instalar
-                                    </a>
+                                    @if (item.EsActivo) // Debes agregar esta propiedad en el ViewModel
+                                    {
+                                        <form asp-action="SolicitarRembolso" asp-controller="Biblioteca" method="post" onsubmit="return confirm('¿Seguro que deseas solicitar el reembolso de este producto?');">
+                                            <input type="hidden" name="idProducto" value="@item.IdProducto" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Solicitar reembolso</button>
+                                        </form>
+                                    }
+                                    <a href="#" class="btn btn-sm btn-success">Jugar / Instalar</a>
                                 </td>
                             </tr>
                         }
