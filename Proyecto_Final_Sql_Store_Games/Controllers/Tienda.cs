@@ -17,21 +17,34 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
         }
 
         public IActionResult Index(
-            string SearchString,
-            string sortOrder,
-            string filterDistribuidora,
-            string filterDesarrolladora,
-            int pageNumber = 1)
+     string SearchString,
+     string sortOrder,
+     string filterDistribuidora,
+     string filterDesarrolladora,
+     int pageNumber = 1)
         {
             int pageSize = 10;
 
-            // Obtener usuario logeado
+            // 1. Configuración de ViewData para mantener el estado de la vista
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NombreSortParm"] = sortOrder == "name_asc" ? "name_desc" : "name_asc";
+            ViewData["PrecioSortParm"] = sortOrder == "precio_asc" ? "precio_desc" : "precio_asc";
+            ViewData["FechaCreacionSortParm"] = sortOrder == "fecha_asc" ? "fecha_desc" : "fecha_asc";
+            ViewData["DesarrolladoraSortParm"] = sortOrder == "desarrolladora_asc" ? "desarrolladora_desc" : "desarrolladora_asc";
+            ViewData["DistribuidoraSortParm"] = sortOrder == "distribuidora_asc" ? "distribuidora_desc" : "distribuidora_asc";
+            ViewData["GeneroSortParm"] = sortOrder == "genero_asc" ? "genero_desc" : "genero_asc";
+
+            ViewData["CurrentFilter"] = SearchString;
+            ViewData["CurrentFilterDistribuidora"] = filterDistribuidora;
+            ViewData["CurrentFilterDesarrolladora"] = filterDesarrolladora;
+
+            // 2. Obtener el ID del usuario logueado
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             int? idUsuario = null;
             if (userIdClaim != null)
                 idUsuario = int.Parse(userIdClaim.Value);
 
-            // Obtener productos ya comprados por el usuario
+            // 3. Obtener los productos comprados por el usuario
             var productosComprados = new List<int>();
             if (idUsuario.HasValue)
             {
@@ -45,7 +58,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     .ToList();
             }
 
-            // 1. Consulta de Juegos Base
+            // 4. Consulta de Juegos Base
             var juegosBase = _context.Juegos
                 .Include(j => j.IdDesarrolladoraNavigation)
                 .Include(j => j.IdDistribuidoraNavigation)
@@ -65,7 +78,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     FechaCreacion = j.IdProductoNavigation.DateCreate
                 });
 
-            // 2. Consulta de DLCs
+            // 5. Consulta de DLCs
             var dlcs = _context.Dlcs
                 .Include(d => d.IdDesarrolladoraNavigation)
                 .Include(d => d.IdDistribuidoraNavigation)
@@ -85,47 +98,73 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     FechaCreacion = d.IdProductoNavigation.DateCreate
                 });
 
-            // 3. UNION ALL y ORDENACIÓN inicial
-            var todosProductos = juegosBase.Concat(dlcs)
-                .OrderByDescending(p => p.TipoProducto)
-                .ThenBy(p => p.Nombre);
+            // 6. UNION ALL y ORDENACIÓN inicial
+            var todosProductos = juegosBase.Concat(dlcs);
 
-            IQueryable<ViewTienda> productosFiltrados = todosProductos;
-
-            // Filtros
+            // 7. Filtros
             if (!string.IsNullOrEmpty(SearchString))
             {
-                productosFiltrados = productosFiltrados
+                todosProductos = todosProductos
                     .Where(p => p.Nombre.Contains(SearchString));
             }
             if (!string.IsNullOrEmpty(filterDistribuidora))
             {
-                productosFiltrados = productosFiltrados
+                todosProductos = todosProductos
                     .Where(p => p.Distribuidora.Contains(filterDistribuidora));
             }
             if (!string.IsNullOrEmpty(filterDesarrolladora))
             {
-                productosFiltrados = productosFiltrados
+                todosProductos = todosProductos
                     .Where(p => p.Desarrolladora.Contains(filterDesarrolladora));
             }
 
-            // Ordenación dinámica
+            // 8. Ordenación dinámica
             switch (sortOrder)
             {
-                case "name_asc":
-                    productosFiltrados = productosFiltrados.OrderBy(p => p.Nombre);
+                case "name_desc":
+                    todosProductos = todosProductos.OrderByDescending(p => p.Nombre);
                     break;
-                case "date_desc":
-                    productosFiltrados = productosFiltrados.OrderByDescending(p => p.FechaCreacion);
+                case "name_asc":
+                    todosProductos = todosProductos.OrderBy(p => p.Nombre);
+                    break;
+                case "precio_desc":
+                    todosProductos = todosProductos.OrderByDescending(p => p.Precio);
+                    break;
+                case "precio_asc":
+                    todosProductos = todosProductos.OrderBy(p => p.Precio);
+                    break;
+                case "fecha_desc":
+                    todosProductos = todosProductos.OrderByDescending(p => p.FechaCreacion);
+                    break;
+                case "fecha_asc":
+                    todosProductos = todosProductos.OrderBy(p => p.FechaCreacion);
+                    break;
+                case "desarrolladora_desc":
+                    todosProductos = todosProductos.OrderByDescending(p => p.Desarrolladora);
+                    break;
+                case "desarrolladora_asc":
+                    todosProductos = todosProductos.OrderBy(p => p.Desarrolladora);
+                    break;
+                case "distribuidora_desc":
+                    todosProductos = todosProductos.OrderByDescending(p => p.Distribuidora);
+                    break;
+                case "distribuidora_asc":
+                    todosProductos = todosProductos.OrderBy(p => p.Distribuidora);
+                    break;
+                case "genero_desc":
+                    todosProductos = todosProductos.OrderByDescending(p => p.Genero);
+                    break;
+                case "genero_asc":
+                    todosProductos = todosProductos.OrderBy(p => p.Genero);
                     break;
                 default:
-                    productosFiltrados = productosFiltrados.OrderBy(p => p.Nombre);
+                    todosProductos = todosProductos.OrderBy(p => p.Nombre);
                     break;
             }
 
-            // Paginado
-            var totalCount = productosFiltrados.Count();
-            var pagedProductos = productosFiltrados
+            // 9. Paginación
+            var totalCount = todosProductos.Count();
+            var pagedProductos = todosProductos
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -134,12 +173,9 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
 
             ViewBag.CurrentPage = pageNumber;
             ViewBag.TotalPages = totalPages;
-            ViewData["CurrentFilter"] = SearchString;
-            ViewData["CurrentSort"] = sortOrder;
-            ViewData["CurrentFilterDistribuidora"] = filterDistribuidora;
-            ViewData["CurrentFilterDesarrolladora"] = filterDesarrolladora;
 
             return View(pagedProductos);
         }
+
     }
 }

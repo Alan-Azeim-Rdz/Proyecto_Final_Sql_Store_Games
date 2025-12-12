@@ -17,7 +17,7 @@
         public decimal PrecioPagado { get; set; }
 
         // Rareza numérica que viene de Item.Rareza
-        public int? Rareza { get; set; }
+        public int? IdRareza { get; set; }
 
         // Tipo de ítem (nombre desde TipoItem)
         public string TipoItem { get; set; } = null!;

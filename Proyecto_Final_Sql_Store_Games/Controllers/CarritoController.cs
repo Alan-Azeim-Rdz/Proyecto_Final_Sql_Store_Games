@@ -39,12 +39,15 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                                 from p2 in juegoGroup.DefaultIfEmpty()
                                 join c in _context.Categoria on p.IdCategoria equals c.Id into categoriaGroup
                                 from c in categoriaGroup.DefaultIfEmpty()
+                                join r in _context.Rareza on i.IdRareza equals r.Id into rarezaGroup // JOIN con la tabla Rareza
+                                from r in rarezaGroup.DefaultIfEmpty() // Obtener el nombre de la rareza
                                 where p.Id == idProducto
                                 select new ViewTiendaItem
                                 {
                                     ProductoId = p.Id,
                                     ProductoNombre = p.Nombre,
-                                    ItemRareza = i.Rareza,
+                                    RarezaId = r != null ? r.Id : (int?)null, // Asignar el ID de rareza
+                                    ItemRareza = r != null ? r.Nombre : "Desconocida",  // Nombre de la rareza
                                     ProductoPrecio = p.Precio,
                                     JuegoOrigenNombre = p2 != null ? p2.Nombre : null,
                                     CategoriaNombre = c != null ? c.Nombre : null
@@ -118,6 +121,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             else
                 return RedirectToAction("Index", "TiendaItems");
         }
+
 
         // Muestra la cesta actual
         [HttpGet]

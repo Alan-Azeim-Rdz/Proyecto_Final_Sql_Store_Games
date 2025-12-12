@@ -71,7 +71,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                     TipoProducto = "Item",
                     FechaAdquisicion = comprado.DateCreate,
                     PrecioPagado = (decimal)comprado.PrecioUnitario,
-                    Rareza = it.Rareza,
+                    IdRareza = it.IdRareza,
                     TipoItem = it.IdTipoItemNavigation.Nombre, // asumiendo que TipoItem tiene 'Nombre'
                     JuegoOrigen = it.IdJuegoOrigenNavigation != null
                         ? it.IdJuegoOrigenNavigation.IdProductoNavigation.Nombre
@@ -92,15 +92,15 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 // Si se puede interpretar como número, filtramos por valor exacto
                 if (int.TryParse(filterRareza, out int rarezaNum))
                 {
-                    query = query.Where(i => i.Rareza == rarezaNum);
+                    query = query.Where(i => i.IdRareza == rarezaNum);
                 }
                 else
                 {
                     // Si algún día mapeas rarezas a texto, podrías usar Contains aquí.
                     // Por ahora lo dejamos por si usas algo como "1", "2", etc.
                     query = query.Where(i =>
-                        i.Rareza.HasValue &&
-                        i.Rareza.Value.ToString().Contains(filterRareza));
+                        i.IdRareza.HasValue &&
+                        i.IdRareza.Value.ToString().Contains(filterRareza));
                 }
             }
 

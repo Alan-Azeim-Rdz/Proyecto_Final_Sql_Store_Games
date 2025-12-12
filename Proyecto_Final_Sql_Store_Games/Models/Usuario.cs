@@ -217,6 +217,12 @@ public partial class Usuario
 
     public virtual ICollection<Item> ItemIdUserUpdateNavigations { get; set; } = new List<Item>();
 
+    public virtual ICollection<Rareza> RarezaIdUserCreateNavigations { get; set; } = new List<Rareza>();
+
+    public virtual ICollection<Rareza> RarezaIdUserDeleteNavigations { get; set; } = new List<Rareza>();
+
+    public virtual ICollection<Rareza> RarezaIdUserUpdateNavigations { get; set; } = new List<Rareza>();
+
     public virtual ICollection<JuegoFormaJuego> JuegoFormaJuegoIdUserCreateNavigations { get; set; } = new List<JuegoFormaJuego>();
 
     public virtual ICollection<JuegoFormaJuego> JuegoFormaJuegoIdUserDeleteNavigations { get; set; } = new List<JuegoFormaJuego>();

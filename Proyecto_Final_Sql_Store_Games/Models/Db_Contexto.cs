@@ -65,7 +65,9 @@ public partial class Db_Contexto : DbContext
 
     public virtual DbSet<Insignium> Insignia { get; set; }
 
-    public virtual DbSet<Item> Items { get; set; }
+    public DbSet<Item> Items { get; set; }        // DbSet para la tabla Item
+
+    public DbSet<Rareza> Rareza { get; set; }
 
     public virtual DbSet<Juego> Juegos { get; set; }
 
@@ -1084,50 +1086,122 @@ public partial class Db_Contexto : DbContext
 
         modelBuilder.Entity<Item>(entity =>
         {
+            // Configuración de la clave primaria
             entity.HasKey(e => e.Id).HasName("PK_Item_NewId");
 
+            // Configuración de la tabla
             entity.ToTable("Item");
 
+            // Índice único para el campo IdProducto
             entity.HasIndex(e => e.IdProducto, "UQ_Item_IdProducto").IsUnique();
 
+            // Propiedades de fecha de auditoría
             entity.Property(e => e.DateCreate)
-                .HasDefaultValueSql("(getdate())")
+                .HasDefaultValueSql("(getdate())")  // Fecha de creación por defecto
                 .HasColumnType("datetime");
+
             entity.Property(e => e.DateDelete).HasColumnType("datetime");
+
             entity.Property(e => e.DateUpdate).HasColumnType("datetime");
+
+            // Configuración de las propiedades de columnas
             entity.Property(e => e.IdJuegoOrigen).HasColumnName("Id_juego_origen");
             entity.Property(e => e.IdProducto).HasColumnName("Id_producto");
             entity.Property(e => e.IdTipoItem).HasColumnName("Id_tipo_item");
-            entity.Property(e => e.Rareza).HasColumnName("rareza");
-            entity.Property(e => e.Status).HasDefaultValue(true);
+            entity.Property(e => e.IdRareza).HasColumnName("IdRareza");  // Clave foránea para Rareza
+            entity.Property(e => e.Status).HasDefaultValue(true);  // Estado activo por defecto
 
-            entity.HasOne(d => d.IdJuegoOrigenNavigation).WithMany(p => p.Items)
-                .HasPrincipalKey(p => p.IdProducto)
+            // Relaciones de claves foráneas
+
+            // Relación con la tabla Juego (IdJuegoOrigen)
+            entity.HasOne(d => d.IdJuegoOrigenNavigation)
+                .WithMany(p => p.Items)
+                .HasPrincipalKey(p => p.IdProducto)  // Relación con IdProducto de Juego
                 .HasForeignKey(d => d.IdJuegoOrigen)
                 .HasConstraintName("FK_Item_JuegoOrigen");
 
-            entity.HasOne(d => d.IdProductoNavigation).WithOne(p => p.Item)
+            // Relación con la tabla Producto (IdProducto)
+            entity.HasOne(d => d.IdProductoNavigation)
+                .WithOne(p => p.Item)
                 .HasForeignKey<Item>(d => d.IdProducto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Item_Producto");
 
-            entity.HasOne(d => d.IdTipoItemNavigation).WithMany(p => p.Items)
+            // Relación con la tabla TipoItem (IdTipoItem)
+            entity.HasOne(d => d.IdTipoItemNavigation)
+                .WithMany(p => p.Items)
                 .HasForeignKey(d => d.IdTipoItem)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Item_Tipo");
 
-            entity.HasOne(d => d.IdUserCreateNavigation).WithMany(p => p.ItemIdUserCreateNavigations)
+            // Relación con la tabla Rareza (IdRareza)
+            entity.HasOne(d => d.IdRarezaNavigation)  // Propiedad de navegación hacia Rareza
+                .WithMany()  // No hay relación inversa en Rareza
+                .HasForeignKey(d => d.IdRareza)  // La clave foránea en Item
+                .OnDelete(DeleteBehavior.ClientSetNull)  // En caso de eliminación de Rareza, establecer a NULL
+                .HasConstraintName("FK_Item_Rareza");
+
+            // Relaciones de auditoría con la tabla Usuario
+            entity.HasOne(d => d.IdUserCreateNavigation)
+                .WithMany(p => p.ItemIdUserCreateNavigations)
                 .HasForeignKey(d => d.IdUserCreate)
                 .HasConstraintName("FK_Item_UserCreate");
 
-            entity.HasOne(d => d.IdUserDeleteNavigation).WithMany(p => p.ItemIdUserDeleteNavigations)
+            entity.HasOne(d => d.IdUserDeleteNavigation)
+                .WithMany(p => p.ItemIdUserDeleteNavigations)
                 .HasForeignKey(d => d.IdUserDelete)
                 .HasConstraintName("FK_Item_UserDelete");
 
-            entity.HasOne(d => d.IdUserUpdateNavigation).WithMany(p => p.ItemIdUserUpdateNavigations)
+            entity.HasOne(d => d.IdUserUpdateNavigation)
+                .WithMany(p => p.ItemIdUserUpdateNavigations)
                 .HasForeignKey(d => d.IdUserUpdate)
                 .HasConstraintName("FK_Item_UserUpdate");
         });
+
+
+        modelBuilder.Entity<Rareza>(entity =>
+        {
+            // Configuración de la clave primaria
+            entity.HasKey(e => e.Id).HasName("PK__Rareza__3214EC070D6E36B4");
+
+            // Configuración de la tabla
+            entity.ToTable("Rareza");
+
+            // Configuración de las propiedades
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .HasColumnName("nombre");
+
+            entity.Property(e => e.Status)
+                .HasDefaultValue(true);  // Estado activo por defecto
+
+            entity.Property(e => e.DateCreate)
+                .HasDefaultValueSql("(getdate())")  // Fecha de creación por defecto
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.DateUpdate)
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.DateDelete)
+                .HasColumnType("datetime");
+
+            // Configuración de las relaciones
+            entity.HasOne(d => d.IdUserCreateNavigation)
+                .WithMany(p => p.RarezaIdUserCreateNavigations)
+                .HasForeignKey(d => d.IdUserCreate)
+                .HasConstraintName("FK_Rareza_UserCreate");
+
+            entity.HasOne(d => d.IdUserUpdateNavigation)
+                .WithMany(p => p.RarezaIdUserUpdateNavigations)
+                .HasForeignKey(d => d.IdUserUpdate)
+                .HasConstraintName("FK_Rareza_UserUpdate");
+
+            entity.HasOne(d => d.IdUserDeleteNavigation)
+                .WithMany(p => p.RarezaIdUserDeleteNavigations)
+                .HasForeignKey(d => d.IdUserDelete)
+                .HasConstraintName("FK_Rareza_UserDelete");
+        });
+
 
         modelBuilder.Entity<Juego>(entity =>
         {

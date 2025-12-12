@@ -21,43 +21,48 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
         }
 
         public async Task<IActionResult> Index(
-            string searchString,
-            int? filterRareza, // Parámetro para el filtro de Rareza
-            int pageNumber = 1,
-            int pageSize = 10)
+     string sortOrder,
+     string searchString,
+     int? filterRareza, // Parámetro para el filtro de Rareza
+     int pageNumber = 1,
+     int pageSize = 10)
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
             searchString = searchString ?? "";
 
-            // 1. Consulta Base LINQ (Replicando los LEFT JOINs)
+            // 1. Configuración de ViewData para los parámetros de ordenación
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NombreSortParm"] = String.IsNullOrEmpty(sortOrder) ? "nombre_desc" : "";
+            ViewData["RarezaSortParm"] = sortOrder == "Rareza" ? "rareza_desc" : "Rareza";
+            ViewData["PrecioSortParm"] = sortOrder == "Precio" ? "precio_desc" : "Precio";
+            ViewData["JuegoOrigenSortParm"] = sortOrder == "JuegoOrigen" ? "juegoOrigen_desc" : "JuegoOrigen";
+            ViewData["CategoriaSortParm"] = sortOrder == "Categoria" ? "categoria_desc" : "Categoria";
+
+            // 2. Consulta Base LINQ (Replicando los LEFT JOINs)
             var itemsQuery = (from p in _context.Productos
-                                  // LEFT JOIN con Item
                               join i in _context.Items on p.Id equals i.IdProducto into itemGroup
                               from i in itemGroup.DefaultIfEmpty()
-
-                                  // LEFT JOIN con Producto (Juego Origen)
                               join p2 in _context.Productos on i.IdJuegoOrigen equals p2.Id into juegoGroup
                               from p2 in juegoGroup.DefaultIfEmpty()
-
-                                  // LEFT JOIN con Categoria
                               join c in _context.Categoria on p.IdCategoria equals c.Id into categoriaGroup
                               from c in categoriaGroup.DefaultIfEmpty()
-
+                              join r in _context.Rareza on i.IdRareza equals r.Id into rarezaGroup  // JOIN con la tabla Rareza
+                              from r in rarezaGroup.DefaultIfEmpty()  // Tomar el nombre de la rareza
                               where p.IdCategoria == 3 // Filtro: Solo productos de tipo "Item"
                               select new
                               {
                                   p.Id,
                                   p.Nombre,
-                                  i.Rareza,
+                                  RarezaId = r != null ? r.Id : (int?)null, // Proyectar el ID de rareza
+                                  RarezaNombre = r.Nombre,  // Obtenemos el nombre de la rareza en vez del ID
                                   p.Precio,
                                   JuegoOrigenNombre = p2.Nombre,
                                   CategoriaNombre = c.Nombre
                               })
-                              .OrderBy(x => x.Nombre)
                               .AsQueryable();
 
-            // 2. Aplicación Condicional de Filtros
+            // 3. Aplicación Condicional de Filtros
             if (!string.IsNullOrEmpty(searchString))
             {
                 itemsQuery = itemsQuery.Where(x => x.Nombre.Contains(searchString));
@@ -65,32 +70,46 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
 
             if (filterRareza.HasValue)
             {
-                // Solo aplica el filtro si Rareza no es null y coincide con el filtro
-                itemsQuery = itemsQuery.Where(x => x.Rareza.HasValue && x.Rareza.Value == filterRareza.Value);
+                // Filtrar por el ID de rareza, no por el nombre
+                itemsQuery = itemsQuery.Where(x => x.RarezaNombre != null && x.RarezaId == filterRareza.Value);
             }
 
-            // 3. Paginación y Proyección
+            // 4. Ordenamiento
+            itemsQuery = sortOrder switch
+            {
+                "nombre_desc" => itemsQuery.OrderByDescending(x => x.Nombre),
+                "Rareza" => itemsQuery.OrderBy(x => x.RarezaNombre).ThenBy(x => x.Nombre),
+                "rareza_desc" => itemsQuery.OrderByDescending(x => x.RarezaNombre).ThenBy(x => x.Nombre),
+                "Precio" => itemsQuery.OrderBy(x => x.Precio).ThenBy(x => x.Nombre),
+                "precio_desc" => itemsQuery.OrderByDescending(x => x.Precio).ThenBy(x => x.Nombre),
+                "JuegoOrigen" => itemsQuery.OrderBy(x => x.JuegoOrigenNombre).ThenBy(x => x.Nombre),
+                "juegoOrigen_desc" => itemsQuery.OrderByDescending(x => x.JuegoOrigenNombre).ThenBy(x => x.Nombre),
+                "Categoria" => itemsQuery.OrderBy(x => x.CategoriaNombre).ThenBy(x => x.Nombre),
+                "categoria_desc" => itemsQuery.OrderByDescending(x => x.CategoriaNombre).ThenBy(x => x.Nombre),
+                _ => itemsQuery.OrderBy(x => x.Nombre),
+            };
+
+            // 5. Paginación y Proyección
             var totalCount = await itemsQuery.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
             var skip = (pageNumber - 1) * pageSize;
 
-            // Proyectar al ViewModel ViewTiendaItem antes de ToListAsync
             var items = await itemsQuery
                 .Skip(skip)
                 .Take(pageSize)
-                .Select(x => new ViewTiendaItem // <--- ¡Esto es crucial!
+                .Select(x => new ViewTiendaItem
                 {
                     ProductoId = x.Id,
                     ProductoNombre = x.Nombre,
-                    ItemRareza = x.Rareza,
+                    ItemRareza = x.RarezaNombre,  // Nombre de la rareza
                     ProductoPrecio = x.Precio,
                     JuegoOrigenNombre = x.JuegoOrigenNombre,
                     CategoriaNombre = x.CategoriaNombre
                 })
                 .ToListAsync();
 
-            // 4. Pasar la información de paginación y filtros a la vista
+            // 6. Pasar la información de paginación y filtros a la vista
             ViewBag.CurrentPage = pageNumber;
             ViewBag.TotalPages = totalPages;
             ViewBag.SearchString = searchString;
@@ -99,5 +118,9 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
 
             return View(items);
         }
+
+
+
+
     }
 }

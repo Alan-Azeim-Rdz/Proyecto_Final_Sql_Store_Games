@@ -1,5 +1,4 @@
-﻿@model List<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewTiendaItem> 
-@* No es necesario @using System.Linq si usamos Model.Count *@
+﻿@model List<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewTiendaItem>
 
 <div class="container-max-width mt-4">
     <h2 class="text-start mb-4 text-light-steam">Tienda de Items</h2>
@@ -7,17 +6,16 @@
     <div class="row mb-3 align-items-center">
         <div class="col-12">
             <form method="get" class="search-bar-steam p-2 d-flex align-items-center">
-                
-                <input type="text" name="searchString" class="form-control form-control-sm me-2 steam-input" 
+                <input type="text" name="searchString" class="form-control form-control-sm me-2 steam-input"
                        placeholder="Buscar por nombre" value="@ViewBag.SearchString" />
 
                 <select name="filterRareza" class="form-select form-select-sm steam-input me-2" style="width: 150px;">
                     <option value="">-- Rareza (Todos) --</option>
-                    <option value="1" selected="@(ViewBag.FilterRareza == 1)">Común (1)</option>
-                    <option value="2" selected="@(ViewBag.FilterRareza == 2)">Raro (2)</option>
-                    <option value="3" selected="@(ViewBag.FilterRareza == 3)">Épico (3)</option>
-                    <option value="4" selected="@(ViewBag.FilterRareza == 4)">Legendario (4)</option>
-                    <option value="5" selected="@(ViewBag.FilterRareza == 5)">Mítico (5)</option>
+                    <option value="1" selected="@(ViewBag.FilterRareza == 1)">Común</option>
+                    <option value="2" selected="@(ViewBag.FilterRareza == 2)">Raro</option>
+                    <option value="3" selected="@(ViewBag.FilterRareza == 3)">Épico</option>
+                    <option value="4" selected="@(ViewBag.FilterRareza == 4)">Legendario</option>
+                    <option value="5" selected="@(ViewBag.FilterRareza == 5)">Mítico</option>
                 </select>
 
                 <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
@@ -27,7 +25,6 @@
 
     <div class="card bg-dark border-0 shadow-lg">
         <div class="card-body">
-            @* CORRECCIÓN 1: Usamos Model.Count para evitar RuntimeBinderException *@
             @if (Model == null || Model.Count == 0)
             {
                 <div class="text-center text-light-steam-soft py-4">
@@ -41,12 +38,22 @@
                     <table class="table table-dark table-striped table-hover align-middle custom-table">
                         <thead class="bg-darker-steam">
                             <tr>
-                                <th>Nombre del Producto</th>
-                                <th>Rareza</th>
-                                <th>Precio</th>
-                                <th>Juego Origen</th>
-                                <th>Categoría</th>
-                                <th>Acciones</th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { sortOrder = ViewData["NombreSortParm"], searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="text-light-steam-soft">Nombre del Producto</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { sortOrder = ViewData["RarezaSortParm"], searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="text-light-steam-soft">Rareza</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { sortOrder = ViewData["PrecioSortParm"], searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="text-light-steam-soft">Precio</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { sortOrder = ViewData["JuegoOrigenSortParm"], searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="text-light-steam-soft">Juego Origen</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { sortOrder = ViewData["CategoriaSortParm"], searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="text-light-steam-soft">Categoría</a>
+                                </th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,15 +81,9 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mt-3">
-
                     @if (ViewBag.CurrentPage > 1)
                     {
-                        @* CORRECCIÓN 2: Pasamos los argumentos anónimos directamente a Url.Action *@
-                        <a href="@Url.Action("Index", new { 
-                            pageNumber = ViewBag.CurrentPage - 1, 
-                            searchString = (string)ViewBag.SearchString,
-                            filterRareza = (int?)ViewBag.FilterRareza 
-                        })" class="btn btn-secondary btn-sm">Anterior</a>
+                        <a href="@Url.Action("Index", new { pageNumber = ViewBag.CurrentPage - 1, searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="btn btn-secondary btn-sm">Anterior</a>
                     }
                     else
                     {
@@ -95,12 +96,7 @@
 
                     @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                     {
-                        @* CORRECCIÓN 2: Pasamos los argumentos anónimos directamente a Url.Action *@
-                        <a href="@Url.Action("Index", new { 
-                            pageNumber = ViewBag.CurrentPage + 1, 
-                            searchString = (string)ViewBag.SearchString,
-                            filterRareza = (int?)ViewBag.FilterRareza 
-                        })" class="btn btn-secondary btn-sm">Siguiente</a>
+                        <a href="@Url.Action("Index", new { pageNumber = ViewBag.CurrentPage + 1, searchString = ViewBag.SearchString, filterRareza = ViewBag.FilterRareza })" class="btn btn-secondary btn-sm">Siguiente</a>
                     }
                     else
                     {

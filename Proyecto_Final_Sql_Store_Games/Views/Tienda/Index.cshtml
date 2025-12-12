@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Proyecto_Final_Sql_Store_Games.Models.ViewModel.ViewTienda>
 
 <div class="container-max-width mt-4">
-    <h2 class="text-start mb-4 text-light-steam">Auditoría General de Juegos y DLCs</h2>
+    <h2 class="text-start mb-4 text-light-steam">Tienda de Juegos y DLCs</h2>
 
     <!-- Barra de Búsqueda -->
     <div class="row mb-3 align-items-center">
@@ -13,19 +13,16 @@
         </div>
     </div>
 
-    <!-- Filtros -->
     <div class="row">
         <div class="col-md-3">
             <div class="sidebar-filter p-3">
                 <h5 class="text-white mb-3">Filtrar por...</h5>
                 <form asp-action="Index" method="get">
-                    <!-- Filtro por Desarrolladora -->
                     <div class="filter-section mb-4">
                         <h6 class="text-light-steam-soft mb-2">Desarrolladora</h6>
                         <input type="text" name="filterDesarrolladora" class="form-control" placeholder="Buscar desarrolladora" value="@ViewData["CurrentFilterDesarrolladora"]" />
                     </div>
 
-                    <!-- Filtro por Distribuidora -->
                     <div class="filter-section mb-4">
                         <h6 class="text-light-steam-soft mb-2">Distribuidora</h6>
                         <input type="text" name="filterDistribuidora" class="form-control" placeholder="Buscar distribuidora" value="@ViewData["CurrentFilterDistribuidora"]" />
@@ -41,12 +38,24 @@
                 <table class="table table-dark table-striped table-hover shadow-lg custom-table">
                     <thead class="bg-darker-steam">
                         <tr>
-                            <th>Nombre del Producto</th>
-                            <th>Precio</th>
-                            <th>Fecha de Creación</th>
-                            <th>Desarrolladora</th>
-                            <th>Distribuidora</th>
-                            <th>Género</th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["NombreSortParm"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="text-light-steam-soft">Nombre del Producto</a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["PrecioSortParm"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="text-light-steam-soft">Precio</a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["FechaCreacionSortParm"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="text-light-steam-soft">Fecha de Creación</a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["DesarrolladoraSortParm"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="text-light-steam-soft">Desarrolladora</a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["DistribuidoraSortParm"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="text-light-steam-soft">Distribuidora</a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["GeneroSortParm"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="text-light-steam-soft">Género</a>
+                            </th>
                             <th></th>
                         </tr>
                     </thead>
@@ -54,7 +63,7 @@
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="text-start">@item.Nombre</td>
+                                <td>@item.Nombre</td>
                                 <td>@item.Precio.ToString("C")</td>
                                 <td>@item.FechaCreacion.ToString("dd/MM/yyyy")</td>
                                 <td>@item.Desarrolladora</td>
@@ -64,9 +73,7 @@
                                     <form asp-controller="Carrito" asp-action="Agregar" method="post" class="d-inline">
                                         <input type="hidden" name="idProducto" value="@item.IdProducto" />
                                         <input type="hidden" name="origen" value="Tienda" />
-                                        <button type="submit" class="btn btn-sm btn-success">
-                                            Agregar a cesta
-                                        </button>
+                                        <button type="submit" class="btn btn-sm btn-success">Agregar a cesta</button>
                                     </form>
                                 </td>
                             </tr>
@@ -75,29 +82,12 @@
                 </table>
             </div>
 
-            <!-- Paginado -->
+            <!-- Paginación -->
             <div class="d-flex justify-content-between align-items-center">
-                @if (ViewBag.CurrentPage > 1)
-                {
-                    <a href="@Url.Action("Index", new { pageNumber = ViewBag.CurrentPage - 1, SearchString = ViewData["CurrentFilter"], sortOrder = ViewData["CurrentSort"], filterDistribuidora = ViewData["CurrentFilterDistribuidora"], filterDesarrolladora = ViewData["CurrentFilterDesarrolladora"] })" class="btn btn-secondary btn-sm">Anterior</a>
-                }
-                else
-                {
-                    <span class="btn btn-secondary btn-sm disabled">Anterior</span>
-                }
-
-                <div class="d-flex align-items-center">
-                    <span class="text-light-steam-soft me-2">Página @ViewBag.CurrentPage de @ViewBag.TotalPages</span>
-                </div>
-
-                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                {
-                    <a href="@Url.Action("Index", new { pageNumber = ViewBag.CurrentPage + 1, SearchString = ViewData["CurrentFilter"], sortOrder = ViewData["CurrentSort"], filterDistribuidora = ViewData["CurrentFilterDistribuidora"], filterDesarrolladora = ViewData["CurrentFilterDesarrolladora"] })" class="btn btn-secondary btn-sm">Siguiente</a>
-                }
-                else
-                {
-                    <span class="btn btn-secondary btn-sm disabled">Siguiente</span>
-                }
+                <!-- Lógica de paginación -->
+                <a asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage - 1)" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="btn btn-secondary btn-sm">Anterior</a>
+                <span class="text-light-steam-soft me-2">Página @ViewBag.CurrentPage de @ViewBag.TotalPages</span>
+                <a asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage + 1)" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-SearchString="@ViewData["CurrentFilter"]" class="btn btn-secondary btn-sm">Siguiente</a>
             </div>
         </div>
     </div>
