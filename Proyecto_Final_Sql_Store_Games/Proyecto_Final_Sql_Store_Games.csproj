@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="bootstrap" Version="5.3.8" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="itext" Version="9.4.0" />
+    <PackageReference Include="iTextSharp" Version="5.5.13.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

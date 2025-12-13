@@ -7,6 +7,9 @@ using System.Linq;
 using Newtonsoft.Json;
 using System;
 using System.Security.Claims;
+using System.IO; // Necesario para MemoryStream (ClosedXML)
+using ClosedXML.Excel; // Necesario para XLSX
+using System.Xml.Linq; // Necesario para XML
 
 namespace Proyecto_Final_Sql_Store_Games.Controllers
 {
@@ -20,7 +23,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             _context = context;
         }
 
-        // Agrega un producto a la cesta (por id)
+        // ... (Acción Agregar permanece sin cambios) ...
         [HttpPost]
         public IActionResult Agregar(int idProducto, string origen)
         {
@@ -39,15 +42,15 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                                 from p2 in juegoGroup.DefaultIfEmpty()
                                 join c in _context.Categoria on p.IdCategoria equals c.Id into categoriaGroup
                                 from c in categoriaGroup.DefaultIfEmpty()
-                                join r in _context.Rareza on i.IdRareza equals r.Id into rarezaGroup // JOIN con la tabla Rareza
-                                from r in rarezaGroup.DefaultIfEmpty() // Obtener el nombre de la rareza
+                                join r in _context.Rareza on i.IdRareza equals r.Id into rarezaGroup
+                                from r in rarezaGroup.DefaultIfEmpty()
                                 where p.Id == idProducto
                                 select new ViewTiendaItem
                                 {
                                     ProductoId = p.Id,
                                     ProductoNombre = p.Nombre,
-                                    RarezaId = r != null ? r.Id : (int?)null, // Asignar el ID de rareza
-                                    ItemRareza = r != null ? r.Nombre : "Desconocida",  // Nombre de la rareza
+                                    RarezaId = r != null ? r.Id : (int?)null,
+                                    ItemRareza = r != null ? r.Nombre : "Desconocida",
                                     ProductoPrecio = p.Precio,
                                     JuegoOrigenNombre = p2 != null ? p2.Nombre : null,
                                     CategoriaNombre = c != null ? c.Nombre : null
@@ -123,29 +126,21 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
         }
 
 
-        // Muestra la cesta actual
+        // ... (Acción Index permanece sin cambios) ...
         [HttpGet]
         public IActionResult Index()
         {
-            // Obtener la cesta de la sesión o crear una nueva
             var cesta = HttpContext.Session.GetObjectFromJson<CestaViewModel>("Cesta") ?? new CestaViewModel();
-
-            // Llenar combos con datos de la base de datos
             ViewBag.MetodosPago = _context.MetodoPagos.Where(m => m.Status).ToList();
             ViewBag.Monedas = _context.Moneda.Where(m => m.Status).ToList();
-
-            // Retornar la vista con la cesta
             return View(cesta);
         }
 
-        // Procesa la compra y muestra el recibo en JSON
+        // ... (Acción Comprar permanece sin cambios, solo se asegura de que ViewBag.ReciboJson esté cargado) ...
         [HttpPost]
         public IActionResult Comprar(string metodoPago, string moneda)
         {
-            // Obtener la cesta de la sesión o crear una nueva
             var cesta = HttpContext.Session.GetObjectFromJson<CestaViewModel>("Cesta") ?? new CestaViewModel();
-
-            // Validar que se haya seleccionado un método de pago y una moneda
             if (string.IsNullOrEmpty(metodoPago) || string.IsNullOrEmpty(moneda))
             {
                 ViewBag.MetodosPago = _context.MetodoPagos.Where(m => m.Status).ToList();
@@ -154,7 +149,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 return View("Index", cesta);
             }
 
-            // Obtener usuario logueado
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
@@ -165,16 +159,14 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             }
             int idUsuario = int.Parse(userIdClaim.Value);
 
-            // Buscar evento activo
             var hoy = DateTime.Now;
             var eventoActivo = _context.Eventos.FirstOrDefault(e => e.Status && e.FechaInicio <= hoy && e.FechaFin >= hoy);
             if (eventoActivo == null)
             {
-                eventoActivo = _context.Eventos.FirstOrDefault(e => e.Id == 1); // Evento 'ninguno'
+                eventoActivo = _context.Eventos.FirstOrDefault(e => e.Id == 1);
             }
             int descuento = eventoActivo?.PorcentajeDescuentoGlobal ?? 0;
 
-            // Calcular total con descuento
             var totalSinDescuento = cesta.Items.Sum(i => i.ProductoPrecio) + cesta.JuegosYDlcs.Sum(j => j.Precio);
             var total = totalSinDescuento;
             if (descuento > 0)
@@ -182,7 +174,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 total = totalSinDescuento - (totalSinDescuento * descuento / 100m);
             }
 
-            // Manejo de puntos y cupones
             var comprasUsuario = _context.Venta.Count(v => v.IdUsuario == idUsuario);
             bool darPuntos = (comprasUsuario + 1) % 2 == 0;
             bool darCupon = (comprasUsuario + 1) % 5 == 0;
@@ -203,7 +194,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 _context.SaveChanges();
             }
 
-            // Si paga con puntos, validar y descontar
             var metodoPagoObj = _context.MetodoPagos.FirstOrDefault(m => m.Id.ToString() == metodoPago);
             bool pagoConPuntos = metodoPagoObj != null && metodoPagoObj.Nombre.ToLower().Contains("punto");
             if (pagoConPuntos)
@@ -222,10 +212,9 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 _context.SaveChanges();
             }
 
-            // Otorgar puntos/cupon si corresponde
             if (darPuntos && !pagoConPuntos)
             {
-                puntosOtorgados = _random.Next(10, 51); // Aleatorio entre 10 y 50
+                puntosOtorgados = _random.Next(10, 51);
                 bolsa.Cantidad = (bolsa.Cantidad ?? 0) + puntosOtorgados;
                 bolsa.IdUserUpdate = idUsuario;
                 bolsa.DateUpdate = DateTime.Now;
@@ -237,7 +226,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 cuponOtorgado = new Cupon
                 {
                     Nombre = $"Cupón-{Guid.NewGuid().ToString().Substring(0, 8)}",
-                    Porcentaje = _random.Next(5, 21), // 5% a 20%
+                    Porcentaje = _random.Next(5, 21),
                     Status = true,
                     DateCreate = DateTime.Now,
                     IdUserCreate = idUsuario
@@ -246,7 +235,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 _context.SaveChanges();
             }
 
-            // Crear factura
             var factura = new Factura
             {
                 Descripcion = "Compra en Steam",
@@ -258,7 +246,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             _context.Facturas.Add(factura);
             _context.SaveChanges();
 
-            // Crear venta
             var venta = new Venta
             {
                 Estado = "Completada",
@@ -274,7 +261,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             _context.Venta.Add(venta);
             _context.SaveChanges();
 
-            // Crear detalles de venta para items
             foreach (var item in cesta.Items)
             {
                 var detalle = new DetalleVentum
@@ -289,7 +275,6 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 };
                 _context.DetalleVenta.Add(detalle);
             }
-            // Crear detalles de venta para juegos y dlcs
             foreach (var prod in cesta.JuegosYDlcs)
             {
                 var detalle = new DetalleVentum
@@ -306,10 +291,7 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
             }
             _context.SaveChanges();
 
-            // Limpiar la cesta
-            HttpContext.Session.SetObjectAsJson("Cesta", new CestaViewModel());
-
-            // Recibo JSON para mostrar y descargar
+            // Recibo JSON para mostrar y descargar (lo generamos antes de limpiar la cesta)
             var productos = new List<object>();
             productos.AddRange(cesta.Items.Select(i => new {
                 Tipo = "Item",
@@ -321,7 +303,8 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 Nombre = j.Nombre,
                 PrecioUnitario = j.Precio
             }));
-            var recibo = new {
+            var recibo = new
+            {
                 Productos = productos,
                 MetodoPago = metodoPagoObj?.Nombre,
                 Moneda = moneda,
@@ -331,8 +314,163 @@ namespace Proyecto_Final_Sql_Store_Games.Controllers
                 PuntosOtorgados = puntosOtorgados,
                 CuponOtorgado = cuponOtorgado?.Nombre
             };
+
+            // Limpiar la cesta DESPUÉS de usarla para generar el recibo
+            HttpContext.Session.SetObjectAsJson("Cesta", new CestaViewModel());
+
             ViewBag.ReciboJson = JsonConvert.SerializeObject(recibo, Formatting.Indented);
             return View("Recibo");
         }
+
+        #region Acciones de Descarga
+
+        // 2. Descarga XLSX (usa ClosedXML)
+        [HttpGet]
+        public IActionResult DescargarXlsx(string reciboJson)
+        {
+            var recibo = JsonConvert.DeserializeObject<dynamic>(reciboJson);
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Detalle Compra");
+                int currentRow = 1;
+
+                // Títulos de la factura
+                worksheet.Cell(currentRow, 1).Value = "REPORTE DE COMPRA";
+                worksheet.Range(currentRow, 1, currentRow, 3).Merge().Style.Font.SetBold();
+                currentRow++;
+                worksheet.Cell(currentRow, 1).Value = "Fecha:";
+                worksheet.Cell(currentRow, 2).Value = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                currentRow++;
+                worksheet.Cell(currentRow, 1).Value = "Método de Pago:";
+                worksheet.Cell(currentRow, 2).Value = (string)recibo.MetodoPago;
+                currentRow++;
+                worksheet.Cell(currentRow, 1).Value = "Moneda:";
+                worksheet.Cell(currentRow, 2).Value = (string)recibo.Moneda;
+                currentRow += 2; // Dos saltos de línea
+
+                // Cabecera de la tabla de productos
+                worksheet.Cell(currentRow, 1).Value = "Tipo";
+                worksheet.Cell(currentRow, 2).Value = "Nombre del Producto";
+                worksheet.Cell(currentRow, 3).Value = "Precio Unitario";
+                worksheet.Range(currentRow, 1, currentRow, 3).Style.Font.SetBold();
+                currentRow++;
+
+                // Detalle de productos
+                foreach (var producto in recibo.Productos)
+                {
+                    worksheet.Cell(currentRow, 1).Value = (string)producto.Tipo;
+                    worksheet.Cell(currentRow, 2).Value = (string)producto.Nombre;
+                    worksheet.Cell(currentRow, 3).Value = (decimal)producto.PrecioUnitario;
+                    worksheet.Cell(currentRow, 3).Style.NumberFormat.Format = $"#0.00 \"{(string)recibo.Moneda}\"";
+                    currentRow++;
+                }
+
+                // Resumen
+                currentRow++;
+                worksheet.Cell(currentRow, 2).Value = "Subtotal:";
+                worksheet.Cell(currentRow, 3).Value = (decimal)recibo.TotalSinDescuento;
+                worksheet.Cell(currentRow, 3).Style.NumberFormat.Format = $"#0.00 \"{(string)recibo.Moneda}\"";
+                currentRow++;
+                worksheet.Cell(currentRow, 2).Value = $"Descuento Evento ({(int)recibo.DescuentoEvento}%):";
+                worksheet.Cell(currentRow, 3).Value = (decimal)recibo.TotalSinDescuento - (decimal)recibo.TotalFinal;
+                worksheet.Cell(currentRow, 3).Style.NumberFormat.Format = $"#0.00 \"{(string)recibo.Moneda}\"";
+                worksheet.Cell(currentRow, 3).Style.Font.SetFontColor(XLColor.Green);
+                currentRow++;
+                worksheet.Cell(currentRow, 2).Value = "TOTAL FINAL:";
+                worksheet.Cell(currentRow, 3).Value = (decimal)recibo.TotalFinal;
+                worksheet.Cell(currentRow, 3).Style.NumberFormat.Format = $"#0.00 \"{(string)recibo.Moneda}\"";
+                worksheet.Cell(currentRow, 3).Style.Font.SetBold();
+
+                // Ajustar ancho de columnas
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(
+                        content,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        $"recibo_compra_{DateTime.Now.ToString("yyyyMMddHHmmss")}.xlsx");
+                }
+            }
+        }
+
+        // 3. Descarga CSV (usa ClosedXML para mayor control, aunque se puede hacer con StringBuilder)
+        [HttpGet]
+        public IActionResult DescargarCsv(string reciboJson)
+        {
+            var recibo = JsonConvert.DeserializeObject<dynamic>(reciboJson);
+            var csvContent = new System.Text.StringBuilder();
+
+            // Agregar metadatos
+            csvContent.AppendLine($"\"Fecha\",\"Método de Pago\",\"Moneda\"");
+            csvContent.AppendLine($"\"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}\",\"{(string)recibo.MetodoPago}\",\"{(string)recibo.Moneda}\"");
+            csvContent.AppendLine(); // Línea en blanco
+
+            // Cabecera de productos
+            csvContent.AppendLine("\"Tipo\",\"Nombre del Producto\",\"Precio Unitario\"");
+
+            // Detalle de productos
+            foreach (var producto in recibo.Productos)
+            {
+                // Reemplazar comillas y comas en nombres para evitar problemas de formato CSV
+                string nombre = ((string)producto.Nombre).Replace("\"", "\"\"");
+                csvContent.AppendLine($"\"{(string)producto.Tipo}\",\"{nombre}\",\"{(decimal)producto.PrecioUnitario}\"");
+            }
+            csvContent.AppendLine(); // Línea en blanco
+
+            // Resumen
+            csvContent.AppendLine($",\"Subtotal:\",\"{(decimal)recibo.TotalSinDescuento}\"");
+            csvContent.AppendLine($",\"Descuento Evento ({(int)recibo.DescuentoEvento}%)\",\"{(decimal)recibo.TotalSinDescuento - (decimal)recibo.TotalFinal}\"");
+            csvContent.AppendLine($",\"TOTAL FINAL:\",\"{(decimal)recibo.TotalFinal}\"");
+
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csvContent.ToString());
+            return File(bytes, "text/csv", $"recibo_compra_{DateTime.Now.ToString("yyyyMMddHHmmss")}.csv");
+        }
+
+        // 4. Descarga XML (usa System.Xml.Linq)
+        [HttpGet]
+        public IActionResult DescargarXml(string reciboJson)
+        {
+            var recibo = JsonConvert.DeserializeObject<dynamic>(reciboJson);
+
+            // ********* CORRECCIÓN DEL ERROR CS1977 *********
+            // Convertimos la colección dynamic de Newtonsoft.Json a IEnumerable<dynamic>
+            IEnumerable<dynamic> productosLista = recibo.Productos;
+
+            var root = new XElement("ReciboDeCompra",
+                new XElement("Metadatos",
+                    new XElement("Fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")),
+                    new XElement("MetodoPago", (string)recibo.MetodoPago),
+                    new XElement("Moneda", (string)recibo.Moneda)
+                ),
+                new XElement("Productos",
+                    // Aplicamos Select sobre la lista ya tipificada como IEnumerable<dynamic>
+                    productosLista.Select(p => new XElement("Producto",
+                        new XAttribute("Tipo", (string)p.Tipo),
+                        new XElement("Nombre", (string)p.Nombre),
+                        new XElement("PrecioUnitario", (decimal)p.PrecioUnitario)
+                    ))
+                ),
+                new XElement("Resumen",
+                    new XElement("TotalSinDescuento", (decimal)recibo.TotalSinDescuento),
+                    new XElement("DescuentoEventoPorcentaje", (int)recibo.DescuentoEvento),
+                    new XElement("TotalFinal", (decimal)recibo.TotalFinal),
+                    new XElement("PuntosOtorgados", (int)recibo.PuntosOtorgados),
+                    new XElement("CuponOtorgado", (string)recibo.CuponOtorgado)
+                )
+            );
+
+            using (var stream = new MemoryStream())
+            {
+                root.Save(stream);
+                var content = stream.ToArray();
+                return File(content, "application/xml", $"recibo_compra_{DateTime.Now.ToString("yyyyMMddHHmmss")}.xml");
+            }
+        }
+        #endregion
     }
 }

@@ -1,28 +1,101 @@
-@{
-    ViewData["Title"] = "Recibo";
+﻿@{
+    ViewData["Title"] = "Recibo de Compra";
+    // Deserializar el JSON para acceder a sus propiedades directamente en la vista
+    dynamic recibo = Newtonsoft.Json.JsonConvert.DeserializeObject((string)ViewBag.ReciboJson);
 }
 
-<div class="container-max-width mt-4">
-    <h2 class="text-start mb-4 text-light-steam">Recibo de compra</h2>
-    <div class="mb-3">
-        <label class="form-label">Recibo en formato JSON:</label>
-        <textarea id="reciboJson" class="form-control" rows="12" readonly>@ViewBag.ReciboJson</textarea>
+<div class="container-max-width mt-5">
+    <div class="card shadow-lg p-4 p-md-5 mx-auto" style="max-width: 600px; border-radius: 15px;">
+        <h2 class="text-center mb-4 text-dark-steam">🛍️ Recibo de Compra</h2>
+        <hr class="mb-4" />
+
+        <div class="row mb-3">
+            <div class="col-6 text-muted">Fecha de Compra:</div>
+            <div class="col-6 text-end">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-6 text-muted">Método de Pago:</div>
+            <div class="col-6 text-end">@recibo.MetodoPago</div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-6 text-muted">Moneda:</div>
+            <div class="col-6 text-end">@recibo.Moneda</div>
+        </div>
+
+        <h5 class="mb-3">🛒 Productos Adquiridos:</h5>
+        <ul class="list-group mb-4">
+            @foreach (var producto in recibo.Productos)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="text-truncate">@producto.Nombre (@producto.Tipo)</span>
+                    <span class="fw-bold">@producto.PrecioUnitario.ToString("N2") @recibo.Moneda</span>
+                </li>
+            }
+        </ul>
+
+        <div class="border-top pt-3">
+            <div class="row mb-2">
+                <div class="col-6">Subtotal:</div>
+                <div class="col-6 text-end">@recibo.TotalSinDescuento.ToString("N2") @recibo.Moneda</div>
+            </div>
+            <div class="row mb-2 @(recibo.DescuentoEvento > 0 ? "text-success" : "text-muted")">
+                <div class="col-6">Descuento de Evento (@recibo.DescuentoEvento%):</div>
+                <div class="col-6 text-end text-success">- @((recibo.TotalSinDescuento - recibo.TotalFinal).ToString("N2")) @recibo.Moneda</div>
+            </div>
+            <div class="row mb-3 fs-5 fw-bold text-primary">
+                <div class="col-6">Total Final:</div>
+                <div class="col-6 text-end">@recibo.TotalFinal.ToString("N2") @recibo.Moneda</div>
+            </div>
+        </div>
+
+        @if (recibo.PuntosOtorgados > 0 || recibo.CuponOtorgado != null)
+        {
+            <hr class="mt-2 mb-3" />
+            <h5 class="mb-3 text-info">🌟 Recompensas Obtenidas:</h5>
+            <div class="alert alert-info py-2" role="alert">
+                @if (recibo.PuntosOtorgados > 0)
+                {
+                    <p class="mb-1">Se te han otorgado **@recibo.PuntosOtorgados puntos**.</p>
+                }
+                @if (recibo.CuponOtorgado != null && !string.IsNullOrEmpty((string)recibo.CuponOtorgado))
+                {
+                    <p class="mb-0">¡Felicitaciones! Has recibido un cupón: **@recibo.CuponOtorgado**.</p>
+                }
+            </div>
+        }
+
+        <div class="d-grid gap-2 mt-4">
+            <a href="@Url.Action("Index", "Tienda")" class="btn btn-primary">Continuar Comprando</a>
+            <a href="@Url.Action("Index", "Carrito")" class="btn btn-secondary">Volver a la Cesta</a>
+        </div>
+
+        <div class="text-center mt-3">
+            <span class="text-muted small d-block mb-1">Descargar recibo completo:</span>
+            <a href="#" onclick="descargarRecibo('json')" class="btn btn-sm btn-outline-info me-2">JSON</a>
+            <a href="@Url.Action("DescargarXml", "Carrito", new { reciboJson = (string)ViewBag.ReciboJson })" class="btn btn-sm btn-outline-info me-2">XML</a>
+            <a href="@Url.Action("DescargarXlsx", "Carrito", new { reciboJson = (string)ViewBag.ReciboJson })" class="btn btn-sm btn-outline-info me-2">XLSX</a>
+            <a href="@Url.Action("DescargarCsv", "Carrito", new { reciboJson = (string)ViewBag.ReciboJson })" class="btn btn-sm btn-outline-danger">CSV</a>
+        </div>
     </div>
-    <button class="btn btn-success" onclick="descargarRecibo()">Descargar recibo (.json)</button>
-    <a href="@Url.Action("Index", "Carrito")" class="btn btn-secondary ms-2">Volver a la cesta</a>
 </div>
 
+<textarea id="reciboJson" style="display:none;">@ViewBag.ReciboJson</textarea>
+
 <script>
-function descargarRecibo() {
-    const data = document.getElementById('reciboJson').value;
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'recibo.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+    function descargarRecibo() {
+        // Lee el contenido del textarea oculto
+        const data = document.getElementById('reciboJson').value;
+
+        // Lógica de descarga JSON
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        // Se mantiene el nombre de archivo sin la fecha aquí, ya que los otros formatos la tienen
+        a.download = 'recibo.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 </script>
